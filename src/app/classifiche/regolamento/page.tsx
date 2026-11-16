@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
   title: "Regolamento Classifiche",
@@ -34,18 +35,21 @@ export default function RegolamentoPage() {
         title="Regolamento"
         subtitle="Le regole generali di assegnazione punteggio per le classifiche di Nettuno Gold."
       />
-      <div className="py-16 md:py-24">
-        <Container className="flex flex-col gap-10">
-          <div className="flex flex-col gap-6">
-            {rules.map((rule) => (
-              <div key={rule.title} className="rounded-lg border border-border-subtle bg-surface p-6">
-                <h2 className="font-display text-xl text-gold-light">{rule.title}</h2>
-                <p className="mt-2 text-sm text-muted leading-relaxed">{rule.text}</p>
-              </div>
+      <div className="pb-16 md:pb-24">
+        <Container className="mx-auto flex max-w-4xl flex-col gap-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {rules.map((rule, i) => (
+              <Reveal key={rule.title} delay={0.06 * i} className="flex">
+                <div className="card-modern flex w-full flex-col gap-3 p-6 sm:p-7">
+                  <span className="font-display text-sm font-bold text-gold">{String(i + 1).padStart(2, "0")}</span>
+                  <h2 className="font-display text-xl font-bold tracking-tight text-foreground">{rule.title}</h2>
+                  <p className="text-sm leading-relaxed text-muted">{rule.text}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
 
-          <p className="text-xs text-muted">
+          <p className="text-center text-xs text-muted">
             Contenuto segnaposto: il regolamento definitivo va confermato con lo staff del
             circolo e sostituito con il testo ufficiale.
           </p>

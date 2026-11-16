@@ -1,8 +1,13 @@
 import { Hero } from "@/components/sections/Hero";
 import { ProssimiTornei } from "@/components/sections/ProssimiTornei";
 import { ClubIntro } from "@/components/sections/ClubIntro";
-import { ServiziPreview } from "@/components/sections/ServiziPreview";
+import { SalaGallery } from "@/components/sections/SalaGallery";
 import { ContattiMappa } from "@/components/sections/ContattiMappa";
+
+// Le pagine sono generate in anticipo; questa impostazione le rigenera al
+// massimo ogni ora, così i tornei che diventano passati spariscono da soli
+// anche senza un nuovo salvataggio dal pannello.
+export const revalidate = 3600;
 
 export default function Home() {
   return (
@@ -10,7 +15,7 @@ export default function Home() {
       <Hero />
       <ProssimiTornei />
       <ClubIntro />
-      <ServiziPreview />
+      <SalaGallery />
       <ContattiMappa />
     </>
   );

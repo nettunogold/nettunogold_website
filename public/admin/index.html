@@ -341,6 +341,36 @@
       }
       .ng-thumb:hover { transform: translateY(-2px); }
       .ng-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .ng-thumb { background: repeating-linear-gradient(45deg, #1a1e24 0 8px, #15181d 8px 16px); }
+      .ng-thumb__pending {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 10px 30px;
+        text-align: center;
+        color: hsl(var(--h) 40% 80%);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1.35;
+      }
+      .ng-thumb--pending { border-style: dashed !important; border-color: hsl(var(--h) 40% 60% / 0.55) !important; }
+      .ng-thumb__name {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 14px 6px 5px;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+        color: #d9d4c8;
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
       .ng-thumb__del {
         position: absolute;
         top: 6px;
@@ -581,10 +611,51 @@
         margin: 6px 0 8px 2px;
         opacity: 0.85;
       }
+
+      /* Avviso: server del pannello non raggiungibile / contenuto non caricato */
+      .ng-notice {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        z-index: 100000;
+        display: none;
+        align-items: center;
+        gap: 14px;
+        max-width: min(760px, calc(100vw - 32px));
+        padding: 14px 16px 14px 20px;
+        border-radius: 14px;
+        background: #2a1416;
+        border: 1px solid rgba(240, 120, 110, 0.45);
+        box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.9);
+        color: #f6d9d6;
+        font: 14px/1.45 system-ui, sans-serif;
+      }
+      .ng-notice strong { color: #fff; white-space: nowrap; }
+      .ng-notice span { flex: 1; }
+      .ng-notice button {
+        flex: none;
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--ng-gold-grad);
+        color: #17130a;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      /* Testi di caricamento/errore di Decap leggibili sul tema scuro */
+      [class*="Loader"],
+      [class*="LoaderText"] { color: var(--ng-text) !important; }
     </style>
   </head>
   <body>
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <!-- Decap CMS 3.17.3 salvato nel progetto (public/admin/decap/), con
+         versione fissa: niente CDN esterni né aggiornamenti automatici che
+         potrebbero rompere il pannello senza preavviso. I file "NNN.decap-cms.js"
+         sono parti caricate su richiesta dallo script principale. Per
+         aggiornare: scaricare la nuova versione di dist/ al posto di questa
+         cartella e ripetere i test del pannello. -->
+    <script src="/admin/decap/decap-cms.js"></script>
     <script>
       // Widget personalizzati del form TORNEI (vedi config.yml, collection
       // "eventi"). Ogni widget disegna da sé la propria sezione colorata, così
@@ -594,6 +665,7 @@
       // sito (src/lib/schemas/event.ts) non cambia formato.
       (function () {
         var DEFAULT_IMAGE = "/eventi/placeholder-torneo.svg";
+        var MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
         function plain(value) {
           if (value && typeof value.toJS === "function") return value.toJS();
@@ -814,6 +886,16 @@
               return { text: text };
             },
             componentDidMount: scheduleLayout,
+            // Se Decap sostituisce il contenuto con il widget ancora montato,
+            // il testo locale va ricostruito dal nuovo valore (altrimenti
+            // resterebbero visibili, e verrebbero salvati, i numeri vecchi).
+            componentDidUpdate: function (prevProps) {
+              if (prevProps.value === this.props.value || this.props.value === this.lastEmitted) return;
+              var d = plain(this.props.value);
+              var text = {};
+              fields.forEach(function (f) { text[f.key] = d[f.key] == null ? "" : String(d[f.key]); });
+              this.setState({ text: text });
+            },
             change: function (f, raw) {
               var text = Object.assign({}, this.state.text);
               text[f.key] = raw;
@@ -825,7 +907,8 @@
                 var n = nf.int ? parseInt(s, 10) : parseFloat(s);
                 data[nf.key] = isNaN(n) ? s : n;
               });
-              this.props.onChange(toMap(this.props.field, data));
+              this.lastEmitted = toMap(this.props.field, data);
+              this.props.onChange(this.lastEmitted);
             },
             isValid: function () {
               var d = plain(this.props.value);
@@ -890,7 +973,7 @@
 
         var LocandineControl = createClass({
           getInitialState: function () {
-            return { urls: {} };
+            return { missing: {} };
           },
           componentWillMount: function () {
             this.controlID = window.crypto && crypto.randomUUID ? crypto.randomUUID() : "ng-" + Math.random().toString(36).slice(2);
@@ -930,23 +1013,30 @@
             var defaultImage = this.props.field.get("default_image") || DEFAULT_IMAGE;
             return list.filter(function (src) { return src && src !== defaultImage; });
           },
-          // Per le immagini appena caricate ma non ancora pubblicate (backend
-          // GitHub), il percorso pubblico non esiste ancora: si chiede a Decap
-          // l'anteprima locale.
-          resolve: function (src) {
-            var self = this;
-            if (this.state.urls[src] !== undefined || !this.props.getAsset) return;
-            this.state.urls[src] = null;
+          // Per le immagini appena caricate ma non ancora pubblicate il file
+          // non esiste ancora su disco: Decap ne tiene una copia in memoria e
+          // getAsset() restituisce l'indirizzo dell'anteprima. Va richiesto a
+          // ogni disegno (come fa il widget immagine di Decap): la prima
+          // risposta può essere il percorso pubblico e aggiornarsi subito dopo.
+          assetUrl: function (src) {
+            if (!this.props.getAsset) return src;
             try {
-              Promise.resolve(this.props.getAsset(src, this.props.field)).then(function (asset) {
-                var url = asset && (asset.url || String(asset));
-                if (url && url.indexOf("[object") !== 0) {
-                  var urls = Object.assign({}, self.state.urls);
-                  urls[src] = url;
-                  self.setState({ urls: urls });
-                }
-              });
-            } catch (e) {}
+              var asset = this.props.getAsset(src, this.props.field);
+              var url = asset && (asset.url || String(asset));
+              return url && url.indexOf("[object") !== 0 ? url : src;
+            } catch (e) {
+              return src;
+            }
+          },
+          // Immagine appena caricata e non ancora salvata: Decap non sempre
+          // riesce a darne un'anteprima. Invece di un riquadro nero si mostra
+          // un segnaposto con il nome del file; il file viene comunque
+          // salvato alla pubblicazione e da lì in poi si vede normalmente.
+          markMissing: function (src) {
+            if (this.state.missing[src]) return;
+            var missing = Object.assign({}, this.state.missing);
+            missing[src] = true;
+            this.setState({ missing: missing });
           },
           add: function (e) {
             e.preventDefault();
@@ -955,8 +1045,12 @@
               forImage: true,
               privateUpload: false,
               value: "",
-              allowMultiple: true,
+              allowMultiple: false,
               field: this.props.field,
+              // Limite di 8 MB per file: oltre, Decap avvisa e non carica.
+              // Le immagini enormi rallentano molto la libreria (in locale
+              // viene ricaricata per intero a ogni apertura) e il sito.
+              config: this.props.field.clear().set("max_file_size", MAX_UPLOAD_BYTES),
             });
           },
           remove: function (index) {
@@ -968,11 +1062,19 @@
             var self = this;
             var images = this.images();
             var thumbs = images.map(function (src, i) {
-              self.resolve(src);
+              var url = self.assetUrl(src);
+              var missing = self.state.missing[src];
               return h(
                 "div",
-                { className: "ng-thumb", key: src + i },
-                h("img", { src: self.state.urls[src] || src, alt: "Locandina " + (i + 1) }),
+                { className: "ng-thumb" + (missing ? " ng-thumb--pending" : ""), key: src + i },
+                missing
+                  ? h("span", { className: "ng-thumb__pending" }, "Anteprima dopo il salvataggio")
+                  : h("img", {
+                      src: url,
+                      alt: "Locandina " + (i + 1),
+                      onError: function () { self.markMissing(src); },
+                    }),
+                h("span", { className: "ng-thumb__name" }, src.split("/").pop()),
                 h(
                   "button",
                   {
@@ -1445,6 +1547,128 @@
           attributes: true,
           attributeFilter: ["class"],
         });
+
+        // ---------------- PROTEZIONI DI SINCRONIZZAZIONE ----------------
+        // 1) "Publish and create new" / "Publish and duplicate": in Decap 3
+        //    lasciano nel form i dati del contenuto appena salvato e il
+        //    salvataggio successivo SOVRASCRIVE quel file (verificato nei test).
+        //    Si tolgono dal menu: resta solo "Publish now".
+        var UNSAFE_MENU = /publish and (create new|duplicate)|pubblica e (crea nuovo|duplica)/i;
+        function hideUnsafeMenuItems() {
+          Array.prototype.forEach.call(document.querySelectorAll('[class*="StyledMenuItem"]'), function (item) {
+            if (UNSAFE_MENU.test(item.textContent) && item.style.display !== "none") item.style.display = "none";
+          });
+        }
+
+        // 2) Passando da un contenuto a un altro senza tornare all'elenco
+        //    (avanti/indietro del browser, link diretto), Decap riusa il form
+        //    senza ricaricare i dati: si vedrebbero i valori del contenuto
+        //    precedente. In quel caso si ricarica la pagina, che legge il
+        //    contenuto giusto dal disco.
+        var lastHash = location.hash;
+        window.addEventListener("hashchange", function () {
+          var prev = lastHash;
+          lastHash = location.hash;
+          var from = /\/entries\//.test(prev) ? prev : null;
+          var to = /\/entries\/|\/new(\?|$)/.test(lastHash) ? lastHash : null;
+          if (from && to && from !== to) {
+            console.warn("[pannello] cambio contenuto senza passare dall'elenco: ricarico i dati");
+            location.reload();
+          }
+        });
+
+        // 3) Server del pannello (npm run cms) non raggiungibile o contenuto
+        //    non caricato: Decap mostrerebbe una pagina quasi vuota (con il
+        //    tema scuro sembra nera). Si mostra invece un avviso chiaro, con
+        //    un nuovo tentativo automatico e il bottone "Riprova".
+        var IS_LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+        var notice = null;
+        function showNotice(title, text) {
+          if (!notice) {
+            notice = document.createElement("div");
+            notice.className = "ng-notice";
+            document.body.appendChild(notice);
+          }
+          if (notice.getAttribute("data-title") === title && notice.style.display === "flex") return;
+          notice.setAttribute("data-title", title);
+          notice.innerHTML = "";
+          var strong = document.createElement("strong");
+          strong.textContent = title;
+          var span = document.createElement("span");
+          span.textContent = text;
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = "Riprova";
+          btn.onclick = function () { location.reload(); };
+          notice.appendChild(strong);
+          notice.appendChild(span);
+          notice.appendChild(btn);
+          notice.style.display = "flex";
+        }
+        function hideNotice() { if (notice) notice.style.display = "none"; }
+
+        var serverDown = false;
+        function checkServer() {
+          fetch("http://localhost:8081/api/v1", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: '{"action":"info"}',
+          })
+            .then(function (r) { return r.ok; })
+            .catch(function () { return false; })
+            .then(function (ok) {
+              if (!ok) {
+                serverDown = true;
+                showNotice("Server del pannello non raggiungibile.", "Controlla che nel terminale siano avviati \"npm run cms\" e \"npm run dev\", poi premi Riprova.");
+              } else if (serverDown) {
+                serverDown = false;
+                hideNotice();
+              }
+            });
+        }
+        if (IS_LOCAL) {
+          checkServer();
+          setInterval(checkServer, 4000);
+        }
+
+        var LOAD_ERROR = /Failed to load entry|Failed to load (media|entries)|Failed to fetch|Failed to persist/i;
+        var retryScheduled = false;
+        function watchLoadErrors() {
+          if (retryScheduled) return;
+          var onEditor = /\/entries\/|\/new(\?|$)/.test(location.hash);
+          var root = document.getElementById("nc-root");
+          var editorBroken = onEditor && !!root && !document.querySelector(".ng-sec") && LOAD_ERROR.test(root.textContent);
+          var toastError = Array.prototype.some.call(document.querySelectorAll('[class*="Toast"]'), function (t) {
+            return LOAD_ERROR.test(t.textContent);
+          });
+          if (!editorBroken && !toastError) return;
+          if (editorBroken) {
+            // Un solo nuovo tentativo automatico per pagina (contatore in
+            // sessionStorage: niente ricariche in loop se il server è spento).
+            var key = "ng-retry:" + location.hash;
+            var tries = 0;
+            try { tries = Number(sessionStorage.getItem(key) || 0); } catch (e) {}
+            if (tries < 1) {
+              retryScheduled = true;
+              try { sessionStorage.setItem(key, String(tries + 1)); } catch (e) {}
+              console.warn("[pannello] contenuto non caricato, nuovo tentativo automatico");
+              setTimeout(function () { location.reload(); }, 1200);
+              return;
+            }
+          }
+          showNotice("Operazione non riuscita.", "Il pannello non è riuscito a comunicare con il server. Controlla che \"npm run cms\" sia avviato e premi Riprova (i dati già salvati non vanno persi).");
+        }
+        // Pagina caricata correttamente: azzera i tentativi automatici.
+        function resetRetries() {
+          if (!document.querySelector(".ng-sec")) return;
+          try { sessionStorage.removeItem("ng-retry:" + location.hash); } catch (e) {}
+        }
+
+        new MutationObserver(function () {
+          hideUnsafeMenuItems();
+          watchLoadErrors();
+          resetRetries();
+        }).observe(document.body, { subtree: true, childList: true });
 
         CMS.registerWidget("ng-torneo", TorneoControl);
         CMS.registerWidget("ng-dettagli", DettagliControl);

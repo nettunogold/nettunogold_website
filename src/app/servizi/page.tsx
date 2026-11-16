@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
 import { ServiceIcon } from "@/components/ui/ServiceIcon";
+import { Reveal } from "@/components/ui/Reveal";
+import { PhotoBanner } from "@/components/ui/PhotoBanner";
+import { businessInfo } from "@/lib/site-config";
 import { services } from "@/lib/data/services";
 
 export const metadata: Metadata = {
@@ -14,22 +17,33 @@ export default function ServiziPage() {
   return (
     <>
       <PageHero
-        eyebrow="La Sala"
-        title="Servizi"
-        subtitle="500 m² pensati per il gioco: dai tavoli regolamentari ai comfort per giocatori e ospiti."
+        title="La Sala"
       />
-      <div className="py-16 md:py-24">
+      <div className="pb-16 md:pb-24">
         <Container className="flex flex-col gap-12">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {services.map((service) => (
-              <div
-                key={service.title}
-                className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface p-6"
-              >
-                <ServiceIcon name={service.icon} size={28} className="text-gold" />
-                <h3 className="font-display text-lg text-foreground">{service.title}</h3>
-                <p className="text-sm text-muted leading-relaxed">{service.description}</p>
-              </div>
+          <PhotoBanner
+            priority
+            src="/sala/sala-panoramica.jpg"
+            alt="Panoramica della sala di Nettuno Gold con i tavoli numerati e i monitor dei tornei"
+            title="Uno spazio pensato per il gioco"
+            stats={[
+              { value: `${businessInfo.stats.areaSqm} m²`, label: "Di sala" },
+              { value: `${businessInfo.stats.tables}`, label: "Tavoli" },
+              { value: `${businessInfo.stats.maxPlayers}`, label: "Posti" },
+            ]}
+          />
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service, i) => (
+              <Reveal key={service.title} delay={0.05 * (i % 3)} className="flex">
+                <div className="card-modern group flex w-full flex-col gap-4 p-7">
+                  <span className="icon-orb h-12 w-12 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[-6deg]">
+                    <ServiceIcon name={service.icon} size={22} />
+                  </span>
+                  <h3 className="font-display text-lg font-semibold text-foreground">{service.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted">{service.description}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </Container>

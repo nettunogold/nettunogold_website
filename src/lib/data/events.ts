@@ -1,5 +1,6 @@
 import { loadRawContent } from "@/lib/content-loader";
 import { eventSchema, type Event } from "@/lib/schemas/event";
+import { todayISO } from "@/lib/today";
 
 function formatZodIssues(issues: { path: PropertyKey[]; message: string }[]) {
   return issues
@@ -25,10 +26,22 @@ function parseAllEvents(): Event[] {
           `Apri il file dell'evento indicato in "content/eventi/" e correggi i campi sopra elencati.\n`
       );
     }
-    return result.data;
+    return { event: result.data, explicitSlug: Boolean((raw as { slug?: unknown })?.slug) };
   });
 
-  return parsed.sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`));
+  // Slug unici: lo slug automatico è "titolo-GG-MM", quindi due tornei con lo
+  // stesso nome nello stesso giorno di anni diversi (es. un torneo annuale
+  // creato di nuovo invece di spostare la data) avrebbero lo stesso
+  // indirizzo. In quel caso si aggiunge l'anno.
+  const counts = new Map<string, number>();
+  for (const { event } of parsed) counts.set(event.slug, (counts.get(event.slug) ?? 0) + 1);
+  const events = parsed.map(({ event, explicitSlug }) =>
+    !explicitSlug && (counts.get(event.slug) ?? 0) > 1
+      ? { ...event, slug: `${event.slug}-${event.date.slice(0, 4)}` }
+      : event
+  );
+
+  return events.sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`));
 }
 
 export function getEvents(): Event[] {
@@ -36,16 +49,15 @@ export function getEvents(): Event[] {
 }
 
 export function getUpcomingEvents(limit?: number): Event[] {
-  const now = new Date();
-  const todayISO = now.toISOString().slice(0, 10);
-  const upcoming = parseAllEvents().filter((event) => event.date >= todayISO);
+  const today = todayISO();
+  const upcoming = parseAllEvents().filter((event) => event.date >= today);
   return typeof limit === "number" ? upcoming.slice(0, limit) : upcoming;
 }
 
 export function getPastEvents(): Event[] {
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   return parseAllEvents()
-    .filter((event) => event.date < todayISO)
+    .filter((event) => event.date < today)
     .sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`));
 }
 

@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, Clock, Timer } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarRange, Clock, Layers, Timer } from "lucide-react";
 import { getAllSeries, getSeriesBySlug } from "@/lib/data/series";
 import { getEventsBySeriesSlug } from "@/lib/data/events";
-import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { formatDateIt, formatDateRangeIt, formatNumberIt } from "@/lib/utils";
+import { Reveal } from "@/components/ui/Reveal";
+import { DetailShell, DetailTitle, GuaranteedPanel, DescriptionCard } from "@/components/events/Detail";
+import { formatDateRangeIt, formatDayNumber, formatMonthFullIt, formatNumberIt } from "@/lib/utils";
+
+// Le pagine sono generate in anticipo; questa impostazione le rigenera al
+// massimo ogni ora, così i tornei che diventano passati spariscono da soli
+// anche senza un nuovo salvataggio dal pannello.
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return getAllSeries().map((series) => ({ slug: series.slug }));
@@ -48,115 +53,81 @@ export default async function SeriePage({
   const flights = getEventsBySeriesSlug(series.slug);
 
   return (
-    <div className="py-12 md:py-20">
-      <Container className="flex flex-col gap-8">
-        <Link
-          href="/tornei"
-          className="inline-flex w-fit items-center gap-2 text-sm uppercase tracking-widest text-muted hover:text-gold"
-        >
-          <ArrowLeft size={16} /> Torna al calendario
-        </Link>
+    <DetailShell backHref="/tornei" backLabel="Torna al calendario" images={series.images} imageAlt={`Locandina ${series.title}`}>
+      <DetailTitle
+        kicker={
+          <div className="flex flex-wrap gap-2">
+            <Badge>Multi-day</Badge>
+            <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-foreground/90">
+              <CalendarRange size={15} className="text-gold" />
+              {formatDateRangeIt(series.startDate, series.endDate)}
+            </span>
+          </div>
+        }
+      >
+        {series.title}
+      </DetailTitle>
 
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
-          <h1 className="text-center font-display text-3xl sm:text-4xl md:text-5xl text-gold-gradient">
-            {series.title}
-          </h1>
+      {series.guaranteed ? <GuaranteedPanel label="Montepremi garantito complessivo" amount={series.guaranteed} /> : null}
 
-          <div className="flex flex-col gap-4">
-            {series.images.map((src, i) => (
-              <div
-                key={src + i}
-                className="relative w-full overflow-hidden rounded-lg border border-border-subtle bg-surface"
-              >
-                <Image
-                  src={src}
-                  alt={`Locandina ${series.title}${series.images.length > 1 ? ` ${i + 1}` : ""}`}
-                  width={0}
-                  height={0}
-                  priority={i === 0}
-                  sizes="(max-width: 768px) 100vw, 672px"
-                  style={{ width: "100%", height: "auto" }}
-                  className="object-contain"
-                />
-              </div>
+      <Reveal className="flex flex-col gap-3">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">Tappe e flight</h2>
+
+        {flights.length === 0 ? (
+          <p className="card-static p-5 text-muted">Nessuna tappa pubblicata per il momento.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {flights.map((flight) => (
+              <Link key={flight.slug} href={`/eventi/${flight.slug}`} className="card-modern group flex items-stretch overflow-hidden">
+                <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-white/[0.06] bg-white/[0.03] sm:w-24">
+                  <span className="font-display text-3xl font-extrabold leading-none tracking-tight text-gold-gradient">
+                    {formatDayNumber(flight.date)}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-muted">{formatMonthFullIt(flight.date)}</span>
+                </div>
+                <div className="flex flex-1 flex-col gap-2 px-4 py-4 sm:px-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {flight.phase && <Badge>{flight.phase}</Badge>}
+                    <span className="font-semibold text-foreground transition-colors group-hover:text-gold-light">{series.title}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+                    <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1">
+                      <Clock size={13} className="text-gold" />
+                      {flight.time}
+                    </span>
+                    <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                      Buy-in <strong className="text-foreground">{formatNumberIt(flight.buyIn)}</strong>
+                    </span>
+                    {flight.startingStack ? (
+                      <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1">
+                        <Layers size={13} className="text-gold" />
+                        {formatNumberIt(flight.startingStack)}
+                      </span>
+                    ) : null}
+                    {flight.levelDurationMinutes ? (
+                      <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1">
+                        <Timer size={13} className="text-gold" />
+                        {flight.levelDurationMinutes} min
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                <span className="hidden items-center pr-5 text-muted transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-gold-light sm:flex">
+                  <ArrowUpRight size={18} />
+                </span>
+              </Link>
             ))}
           </div>
+        )}
+      </Reveal>
 
-          <span className="text-center text-sm text-muted">
-            {formatDateRangeIt(series.startDate, series.endDate)}
-          </span>
+      {series.description ? <DescriptionCard text={series.description} /> : null}
 
-          {series.guaranteed ? (
-            <div className="rounded-lg border border-gold/40 bg-gold/10 p-5 text-center">
-              <div className="text-xs uppercase tracking-widest text-gold">
-                Montepremi garantito complessivo
-              </div>
-              <div className="mt-1 font-sans text-3xl font-bold text-gold-light">
-                {formatNumberIt(series.guaranteed)}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="flex flex-col gap-4">
-            <h2 className="font-display text-2xl text-gold-gradient">Tappe e flight</h2>
-
-            {flights.length === 0 ? (
-              <p className="text-muted">Nessuna tappa pubblicata per il momento.</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {flights.map((flight) => (
-                  <Link
-                    key={flight.slug}
-                    href={`/eventi/${flight.slug}`}
-                    className="flex flex-col gap-2 rounded-lg border border-border-subtle bg-surface px-5 py-4 transition-colors hover:border-gold/50"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      {flight.phase && (
-                        <Badge className="border-gold-light/50 bg-gold-light/10 text-gold-light">
-                          {flight.phase}
-                        </Badge>
-                      )}
-                      <span className="font-medium text-foreground">{series.title}</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted">
-                      <span className="flex items-center gap-1.5">
-                        <CalendarDays size={15} className="text-gold" />
-                        {formatDateIt(flight.date)}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Clock size={15} className="text-gold" />
-                        {flight.time}
-                      </span>
-                      <span>buy-in: {formatNumberIt(flight.buyIn)}</span>
-                      {flight.startingStack ? (
-                        <span>stack: {formatNumberIt(flight.startingStack)}</span>
-                      ) : null}
-                      {flight.levelDurationMinutes && (
-                        <span className="flex items-center gap-1.5">
-                          <Timer size={15} className="text-gold" />
-                          {flight.levelDurationMinutes} min
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {series.description ? (
-            <p className="text-foreground/85 leading-relaxed whitespace-pre-line">
-              {series.description}
-            </p>
-          ) : null}
-
-          <div className="flex justify-center">
-            <Button href="/tornei" size="lg">
-              Altri tornei
-            </Button>
-          </div>
-        </div>
-      </Container>
-    </div>
+      <Reveal>
+        <Button href="/tornei" size="lg" className="w-full sm:w-auto">
+          Altri tornei <ArrowRight size={18} />
+        </Button>
+      </Reveal>
+    </DetailShell>
   );
 }

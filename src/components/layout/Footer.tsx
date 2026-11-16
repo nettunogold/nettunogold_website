@@ -1,149 +1,118 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Phone, Mail, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
 import { navLinks } from "./nav-links";
 import { businessInfo } from "@/lib/site-config";
 import { InstagramIcon, FacebookIcon } from "@/components/icons/SocialIcons";
+
+const socialClass =
+  "glass flex h-11 w-11 items-center justify-center rounded-full text-gold-light transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50";
 
 export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border-subtle bg-surface">
-      <Container className="py-12 md:py-16">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
-          <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/logo/nettuno-gold-emblem-180.png"
-                alt="Emblema Nettuno Gold"
-                width={180}
-                height={202}
-                className="h-11 w-auto"
-              />
-              <span className="font-display text-xl text-gold-gradient">
-                NETTUNO GOLD
-              </span>
-            </Link>
-            <p className="mt-4 text-sm text-muted leading-relaxed">
-              Poker room a Villanova di Castenaso, Bologna. Dal {businessInfo.foundedYear},
-              tornei di Texas Hold&apos;em quasi ogni giorno.
-            </p>
-            <div className="mt-5 flex gap-4">
-              <a
-                href={businessInfo.social.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Nettuno Gold su Instagram"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/30 text-gold hover:bg-gold/10"
-              >
-                <InstagramIcon width={18} height={18} />
-              </a>
-              <a
-                href={businessInfo.social.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Nettuno Gold su Facebook"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/30 text-gold hover:bg-gold/10"
-              >
-                <FacebookIcon width={18} height={18} />
-              </a>
+    <footer className="relative mt-4 px-3 pb-3 sm:mt-10 sm:px-5 sm:pb-5">
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-white/[0.04] to-white/[0.01]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[48rem] -translate-x-1/2 rounded-full bg-gold/15 blur-[120px]"
+        />
+
+        {/* Invito all'azione */}
+        <Container className="relative flex flex-col items-start justify-between gap-5 border-b border-white/[0.06] py-8 sm:gap-6 sm:py-10 md:flex-row md:items-center md:py-12">
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-heading-gradient sm:text-3xl">
+              Pronto a sederti al tavolo?
+            </h2>
+            <p className="mt-2 text-muted">Scopri i prossimi appuntamenti in sala.</p>
+          </div>
+          <Button href="/tornei" size="lg">
+            Calendario tornei <ArrowRight size={18} />
+          </Button>
+        </Container>
+
+        <Container className="relative py-10 sm:py-12">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-[1.2fr_1fr_1.4fr]">
+            <div>
+              <Link href="/" className="flex items-center gap-3">
+                <Image
+                  src="/logo/nettuno-gold-emblem-180.png"
+                  alt="Emblema Nettuno Gold"
+                  width={180}
+                  height={202}
+                  className="h-11 w-auto"
+                />
+                <span className="font-brand text-lg font-bold tracking-[0.04em] text-gold-gradient">NETTUNO GOLD</span>
+              </Link>
+              <div className="mt-6 flex gap-3">
+                <a href={businessInfo.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Nettuno Gold su Instagram" className={socialClass}>
+                  <InstagramIcon width={18} height={18} />
+                </a>
+                <a href={businessInfo.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Nettuno Gold su Facebook" className={socialClass}>
+                  <FacebookIcon width={18} height={18} />
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-light">Il sito</h3>
+              <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-1">
+                {navLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-sm text-muted transition-colors hover:text-gold-light">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-light">Contatti</h3>
+              <ul className="mt-4 space-y-3 text-sm text-muted">
+                <li className="flex items-start gap-2.5">
+                  <MapPin size={16} className="mt-0.5 shrink-0 text-gold" />
+                  <a href={businessInfo.mapLink} target="_blank" rel="noopener noreferrer" className="hover:text-gold-light">
+                    {businessInfo.address.street}, {businessInfo.address.postalCode} {businessInfo.address.city} (
+                    {businessInfo.address.region})
+                  </a>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Phone size={16} className="shrink-0 text-gold" />
+                  <a href={businessInfo.phoneHref} className="hover:text-gold-light">
+                    {businessInfo.phone}
+                  </a>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Mail size={16} className="shrink-0 text-gold" />
+                  <a href={`mailto:${businessInfo.email}`} className="hover:text-gold-light">
+                    {businessInfo.email}
+                  </a>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <InstagramIcon width={16} height={16} className="shrink-0 text-gold" />
+                  <a href={businessInfo.social.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold-light">
+                    Instagram
+                  </a>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <FacebookIcon width={16} height={16} className="shrink-0 text-gold" />
+                  <a href={businessInfo.social.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-gold-light">
+                    Facebook
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
-              Il sito
-            </h3>
-            <ul className="mt-4 space-y-3">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted hover:text-gold transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link
-                  href="/classifiche/regolamento"
-                  className="text-sm text-muted hover:text-gold transition-colors"
-                >
-                  Regolamento
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
-              Contatti
-            </h3>
-            <ul className="mt-4 space-y-3 text-sm text-muted">
-              <li className="flex items-start gap-2">
-                <MapPin size={16} className="mt-0.5 shrink-0 text-gold" />
-                <a href={businessInfo.mapLink} target="_blank" rel="noopener noreferrer" className="hover:text-gold">
-                  {businessInfo.address.street}, {businessInfo.address.postalCode}{" "}
-                  {businessInfo.address.city} ({businessInfo.address.region})
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone size={16} className="shrink-0 text-gold" />
-                <a href={businessInfo.phoneHref} className="hover:text-gold">
-                  {businessInfo.phone}
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail size={16} className="shrink-0 text-gold" />
-                <a href={`mailto:${businessInfo.email}`} className="hover:text-gold">
-                  {businessInfo.email}
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
-              Orari
-            </h3>
-            <ul className="mt-4 space-y-2 text-sm text-muted">
-              {businessInfo.openingHours.map((slot) => (
-                <li key={slot.days} className="flex justify-between gap-4">
-                  <span>{slot.days}</span>
-                  <span className="text-foreground/80">{slot.hours}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-xs text-muted/70">
-              Orari indicativi, da confermare — placeholder in attesa di dati definitivi.
-            </p>
-          </div>
-        </div>
-
-        <div className="divider-gold my-10" aria-hidden="true" />
-
-        <div className="rounded border border-gold/20 bg-background/60 p-4 text-xs leading-relaxed text-muted">
-          <p>
-            <strong className="text-gold-light">Gioco vietato ai minori di 18 anni.</strong>{" "}
-            Il gioco può causare dipendenza patologica. Osserva le probabilità di vincita
-            indicate nei regolamenti dei singoli tornei. Per informazioni sul gioco
-            responsabile e per un supporto in caso di ludopatia consulta il sito del
-            Ministero della Salute o rivolgiti ai servizi ASL del territorio.
+          <p className="mt-8 border-t border-white/[0.06] pt-6 sm:mt-10 text-xs text-muted/70">
+            © {year} {businessInfo.name}
           </p>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-2 text-xs text-muted/70 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {year} {businessInfo.legalName} — P.IVA {businessInfo.vatNumber}
-          </p>
-          <p className="text-muted/50">
-            Dati societari indicativi (placeholder): da confermare col cliente.
-          </p>
-        </div>
-      </Container>
+        </Container>
+      </div>
     </footer>
   );
 }

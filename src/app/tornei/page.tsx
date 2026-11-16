@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { getUpcomingEvents } from "@/lib/data/events";
-import { getAllSeries } from "@/lib/data/series";
+import { getActiveSeries } from "@/lib/data/series";
 import { Container } from "@/components/ui/Container";
-import { PageHero } from "@/components/sections/PageHero";
 import { TorneiExplorer } from "@/components/events/TorneiExplorer";
 import { SeriesCard } from "@/components/events/SeriesCard";
+import { Eyebrow } from "@/components/ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { PageBanner } from "@/components/ui/PageBanner";
+
+// Le pagine sono generate in anticipo; questa impostazione le rigenera al
+// massimo ogni ora, così i tornei che diventano passati spariscono da soli
+// anche senza un nuovo salvataggio dal pannello.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Calendario Tornei",
@@ -21,18 +28,21 @@ export default function TorneiPage() {
   // calendario mostra solo i tornei a sé stanti.
   const standaloneEvents = upcomingEvents.filter((event) => !event.seriesSlug);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const activeSeries = getAllSeries().filter((series) => series.endDate >= today);
+  const activeSeries = getActiveSeries();
 
   return (
     <>
-      <PageHero eyebrow="Calendario" title="Tornei" />
-      <div className="py-16 md:py-24">
-        <Container className="flex flex-col gap-16">
+      <PageBanner
+        src="/sala/tavolo-nettuno-gold.jpg"
+        alt="Giocatori al tavolo Nettuno Gold durante un torneo"
+        title="Tornei"
+      />
+      <div className="pb-16 pt-10 sm:pt-14 md:pb-24">
+        <Container className="flex flex-col gap-12 sm:gap-16">
           {activeSeries.length > 0 && (
             <div className="flex flex-col gap-6">
               <SectionTag>Multi-Day in programma</SectionTag>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {activeSeries.map((series) => (
                   <SeriesCard
                     key={series.slug}
@@ -58,8 +68,8 @@ export default function TorneiPage() {
 
 function SectionTag({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-fit rounded-full border border-gold/30 bg-surface px-4 py-1.5">
-      <span className="text-xs font-medium uppercase tracking-widest text-gold">{children}</span>
-    </div>
+    <Reveal>
+      <Eyebrow>{children}</Eyebrow>
+    </Reveal>
   );
 }
