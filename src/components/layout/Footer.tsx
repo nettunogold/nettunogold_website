@@ -18,7 +18,7 @@ export function Footer() {
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-white/[0.04] to-white/[0.01]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[48rem] -translate-x-1/2 rounded-full bg-gold/15 blur-[120px]"
+          className="pointer-events-none absolute -top-56 left-1/2 h-[28rem] w-[60rem] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(201,162,39,0.13),rgba(201,162,39,0.04)_40%,transparent_70%)]"
         />
 
         {/* Invito all'azione */}

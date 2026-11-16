@@ -153,7 +153,13 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  animation: var(--animate-shimmer);
+}
+/* Il riflesso che scorre ridisegna il testo a ogni fotogramma: solo da
+   tablet in su. Sul telefono il titolo resta dorato ma fermo. */
+@media (min-width: 768px) {
+  .text-gold-shine {
+    animation: var(--animate-shimmer);
+  }
 }
 
 /* Titoli: dal quasi-bianco all'oro */
@@ -189,6 +195,23 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
+}
+
+/* Sul telefono la sfocatura dello sfondo (backdrop-filter) costa molto alla
+   scheda video, soprattutto con tanti elementi e schermi ad alta densità:
+   si usa uno sfondo pieno, visivamente quasi identico. L'header resta in
+   vetro, con una sfocatura più leggera. */
+@media (max-width: 767px) {
+  .glass {
+    background: linear-gradient(180deg, rgba(30, 30, 34, 0.82), rgba(22, 22, 26, 0.82));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .glass-strong {
+    background: rgba(14, 14, 17, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 /* Card moderna: vetro + bordo che si accende d'oro e alone all'hover */
@@ -315,5 +338,58 @@ body {
 @media (min-width: 768px) {
   .container-nettuno {
     padding-inline: 2rem;
+  }
+}
+
+/* Righe dei tornei e card "soft": sul telefono niente backdrop-filter
+   (vedi nota sulle superfici in vetro). */
+@media (max-width: 767px) {
+  .card-soft {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Particelle dorate attorno al logo e pallino "scorri" della home: solo
+   transform e opacity (eseguite dalla scheda video, nessun JavaScript). */
+@keyframes ng-particle {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--drift, -10px));
+  }
+}
+.ng-particle {
+  opacity: 0;
+  animation: ng-particle var(--dur, 5s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes ng-scroll-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translateY(12px);
+  }
+}
+.ng-scroll-dot {
+  animation: ng-scroll-dot 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ng-particle {
+    animation: none;
+    opacity: 0.35;
+  }
+  .ng-scroll-dot {
+    animation: none;
   }
 }
