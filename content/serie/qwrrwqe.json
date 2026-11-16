@@ -1,0 +1,21 @@
+{
+  "informazioni": {
+    "title": "qwrrwqe",
+    "inizio": {
+      "day": "13",
+      "month": "11",
+      "year": "2026"
+    },
+    "fine": {
+      "day": "29",
+      "month": "11",
+      "year": "2026"
+    }
+  },
+  "dettagli": {
+    "guaranteed": 1
+  },
+  "images": [
+    "/eventi/screenshot-2026-09-11-203831.png"
+  ]
+}

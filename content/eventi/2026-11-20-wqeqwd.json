@@ -1,0 +1,21 @@
+{
+  "torneo": {
+    "title": "wqeqwd",
+    "day": "20",
+    "month": "11",
+    "year": "2026",
+    "time": "20:00"
+  },
+  "dettagli": {
+    "buyIn": 1,
+    "guaranteed": 1,
+    "startingStack": 1,
+    "levelDurationMinutes": 1
+  },
+  "images": [
+    "/eventi/flip-go_thegladiator.jpg"
+  ],
+  "serie": {
+    "seriesSlug": "qwrrwqe-2026"
+  }
+}
