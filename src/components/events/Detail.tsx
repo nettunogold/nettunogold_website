@@ -107,7 +107,7 @@ export function GuaranteedPanel({ label, amount }: { label: string; amount: numb
   return (
     <Reveal>
       <div className="border-gradient-gold relative overflow-hidden rounded-3xl bg-gradient-to-br from-gold/20 via-gold/5 to-transparent p-6 sm:p-7">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold/25 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 bg-[radial-gradient(circle,rgba(201,162,39,0.25),transparent_70%)]" />
         <div className="relative flex items-center gap-4">
           <span className="icon-orb h-12 w-12 shrink-0">
             <Coins size={22} />

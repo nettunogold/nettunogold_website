@@ -140,7 +140,7 @@ export function LocationMap({ className }: { className?: string }) {
             />
           ))}
         <motion.div
-          className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gold/60 bg-[#0b0b0e]/90 shadow-[0_0_0_6px_rgba(201,162,39,0.10),0_10px_30px_-8px_rgba(201,162,39,0.55)] backdrop-blur"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gold/60 bg-[#0b0b0e]/90 shadow-[0_0_0_6px_rgba(201,162,39,0.10),0_10px_30px_-8px_rgba(201,162,39,0.55)] md:backdrop-blur"
           initial={reduce ? false : { y: -26, opacity: 0, scale: 0.8 }}
           animate={show ? { y: 0, opacity: 1, scale: 1 } : undefined}
           transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.7 }}
@@ -163,7 +163,7 @@ export function LocationMap({ className }: { className?: string }) {
       </div>
 
       {/* Nord e scala */}
-      <div className="pointer-events-none absolute right-4 top-4 flex h-10 w-10 flex-col items-center justify-center rounded-full border border-white/10 bg-black/30 text-[10px] font-semibold text-foreground/70 backdrop-blur">
+      <div className="pointer-events-none absolute right-4 top-4 flex h-10 w-10 flex-col items-center justify-center rounded-full border border-white/10 bg-black/50 text-[10px] font-semibold text-foreground/70 md:bg-black/30 md:backdrop-blur">
         <span className="h-0 w-0 border-x-[4px] border-b-[7px] border-x-transparent border-b-gold/80" />N
       </div>
 

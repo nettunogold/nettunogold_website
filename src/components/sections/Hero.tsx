@@ -45,7 +45,7 @@ export function Hero() {
                 logo, che sta al 55,4% dell'altezza (sopra sporge il tridente). */}
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-[55.4%] h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 blur-[2px] animate-spin-slow sm:h-80 sm:w-80"
+              className="absolute left-1/2 top-[55.4%] h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 animate-spin-slow sm:h-80 sm:w-80"
               style={{
                 background:
                   "conic-gradient(from 0deg, transparent 0deg, rgba(240,199,94,0.55) 60deg, transparent 140deg, transparent 200deg, rgba(201,162,39,0.4) 260deg, transparent 330deg)",
@@ -55,7 +55,7 @@ export function Hero() {
             />
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-[55.4%] h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/20 blur-3xl sm:h-64 sm:w-64"
+              className="absolute left-1/2 top-[55.4%] h-80 w-80 -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle,rgba(201,162,39,0.2),transparent_65%)] sm:h-96 sm:w-96"
             />
 
             <Image
@@ -101,11 +101,7 @@ export function Hero() {
         className="absolute inset-x-0 bottom-6 z-10 hidden justify-center md:flex"
       >
         <div className="glass flex h-10 w-6 items-start justify-center rounded-full p-1.5">
-          <motion.span
-            animate={reduceMotion ? {} : { y: [0, 12, 0], opacity: [1, 0.3, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            className="h-1.5 w-1.5 rounded-full bg-gold-light"
-          />
+          <span className={reduceMotion ? "h-1.5 w-1.5 rounded-full bg-gold-light" : "ng-scroll-dot h-1.5 w-1.5 rounded-full bg-gold-light"} />
         </div>
       </motion.div>
     </section>

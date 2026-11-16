@@ -146,7 +146,7 @@ export default function IlClubPage() {
               {staffRoles.map((s, i) => (
                 <Reveal key={s.role} delay={0.08 * i} className="flex">
                   <div className="card-modern border-gradient-gold flex w-full flex-col gap-3 overflow-hidden p-7">
-                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gold/15 blur-2xl" />
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 bg-[radial-gradient(circle,rgba(201,162,39,0.16),transparent_70%)]" />
                     <h3 className="relative font-display text-xl font-bold tracking-tight text-gold-gradient">{s.role}</h3>
                     <p className="relative text-sm leading-relaxed text-muted">{s.text}</p>
                   </div>

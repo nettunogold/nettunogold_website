@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import type React from "react";
 
 type Particle = {
   id: string;
@@ -32,6 +32,10 @@ const PARTICLES: Particle[] = [
   { id: "p14", leftPct: 88, topPct: 64, size: 2, duration: 5.3, delay: 2.7, drift: -9 },
 ];
 
+// Animazione in puro CSS (classe .ng-particle in globals.css): solo
+// trasformazioni e opacità, eseguite dalla scheda video. Prima erano animate
+// via JavaScript (framer-motion), con centinaia di aggiornamenti di stile al
+// secondo che rallentavano i telefoni.
 export function GoldParticles({ reduceMotion }: { reduceMotion: boolean }) {
   return (
     <div
@@ -39,26 +43,20 @@ export function GoldParticles({ reduceMotion }: { reduceMotion: boolean }) {
       className="pointer-events-none absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 sm:h-[32rem] sm:w-[32rem]"
     >
       {PARTICLES.map((p) => (
-        <motion.span
+        <span
           key={p.id}
-          className="absolute rounded-full bg-gold-light"
-          style={{
-            left: `${p.leftPct}%`,
-            top: `${p.topPct}%`,
-            width: p.size,
-            height: p.size,
-            boxShadow: "0 0 6px 1px rgba(240,199,94,0.7)",
-          }}
-          initial={{ opacity: 0, y: 0 }}
-          animate={
-            reduceMotion
-              ? { opacity: 0.35 }
-              : { opacity: [0, 0.8, 0], y: [0, p.drift] }
-          }
-          transition={
-            reduceMotion
-              ? undefined
-              : { duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }
+          className={reduceMotion ? "absolute rounded-full bg-gold-light opacity-35" : "ng-particle absolute rounded-full bg-gold-light"}
+          style={
+            {
+              left: `${p.leftPct}%`,
+              top: `${p.topPct}%`,
+              width: p.size,
+              height: p.size,
+              boxShadow: "0 0 6px 1px rgba(240,199,94,0.7)",
+              "--drift": `${p.drift}px`,
+              "--dur": `${p.duration}s`,
+              "--delay": `${p.delay}s`,
+            } as React.CSSProperties
           }
         />
       ))}

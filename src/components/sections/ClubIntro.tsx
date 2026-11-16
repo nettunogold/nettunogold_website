@@ -20,7 +20,7 @@ export function ClubIntro() {
     <section className="relative overflow-hidden py-14 sm:py-24 md:py-32">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-40 top-1/2 h-[36rem] w-[36rem] -translate-y-1/2 rounded-full bg-gold/10 blur-[140px]"
+        className="pointer-events-none absolute -left-64 top-1/2 h-[48rem] w-[48rem] -translate-y-1/2 bg-[radial-gradient(circle,rgba(201,162,39,0.09),rgba(201,162,39,0.03)_40%,transparent_70%)]"
       />
       <Container className="relative">
         <div className="grid grid-cols-1 items-center gap-10 sm:gap-14 lg:grid-cols-2">
