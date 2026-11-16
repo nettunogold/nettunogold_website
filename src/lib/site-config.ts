@@ -29,8 +29,6 @@ export const businessInfo = {
   openingHours: [
     { days: "Lunedì – Domenica", hours: "18:00 – 02:00" },
   ],
-  mapEmbedSrc:
-    "https://www.google.com/maps?q=Via+Toscanini+7%2F2,+40055+Villanova+di+Castenaso+BO&output=embed",
   mapLink:
     "https://www.google.com/maps/search/?api=1&query=Via+Toscanini+7%2F2%2C+40055+Villanova+di+Castenaso+BO",
   stats: {

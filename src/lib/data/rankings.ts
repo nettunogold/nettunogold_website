@@ -1,25 +1,22 @@
-import { rawRankings } from "@content/classifiche";
+import { loadRawContent } from "@/lib/content-loader";
 import { rankingSchema, type Ranking } from "@/lib/schemas/ranking";
 
-let cachedRankings: Ranking[] | null = null;
-
+// Nessuna cache in memoria: vedi il commento in src/lib/data/events.ts.
 function parseAllRankings(): Ranking[] {
-  if (cachedRankings) return cachedRankings;
+  const rawRankings = loadRawContent("classifiche");
 
-  cachedRankings = rawRankings.map((raw, index) => {
+  return rawRankings.map((raw, index) => {
     const result = rankingSchema.safeParse(raw);
     if (!result.success) {
       const details = result.error.issues
         .map((issue) => `  • campo "${issue.path.join(".") || "?"}": ${issue.message}`)
         .join("\n");
       throw new Error(
-        `\n\nERRORE nella classifica #${index + 1} in content/classifiche/index.ts:\n${details}\n`
+        `\n\nERRORE nella classifica #${index + 1} in content/classifiche/:\n${details}\n`
       );
     }
     return result.data;
   });
-
-  return cachedRankings;
 }
 
 export function getRankings(): Ranking[] {

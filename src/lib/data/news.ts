@@ -1,10 +1,9 @@
-import { rawNews } from "@content/news";
+import { loadRawContent } from "@/lib/content-loader";
 import { newsSchema, type NewsPost } from "@/lib/schemas/news";
 
-let cachedNews: NewsPost[] | null = null;
-
+// Nessuna cache in memoria: vedi il commento in src/lib/data/events.ts.
 function parseAllNews(): NewsPost[] {
-  if (cachedNews) return cachedNews;
+  const rawNews = loadRawContent("news");
 
   const parsed = rawNews.map((raw, index) => {
     const result = newsSchema.safeParse(raw);
@@ -12,15 +11,12 @@ function parseAllNews(): NewsPost[] {
       const details = result.error.issues
         .map((issue) => `  • campo "${issue.path.join(".") || "?"}": ${issue.message}`)
         .join("\n");
-      throw new Error(
-        `\n\nERRORE nella news #${index + 1} in content/news/index.ts:\n${details}\n`
-      );
+      throw new Error(`\n\nERRORE nella news #${index + 1} in content/news/:\n${details}\n`);
     }
     return result.data;
   });
 
-  cachedNews = parsed.sort((a, b) => b.date.localeCompare(a.date));
-  return cachedNews;
+  return parsed.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export function getNews(): NewsPost[] {

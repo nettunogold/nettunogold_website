@@ -1,20 +1,30 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Sora, Plus_Jakarta_Sans, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SITE_URL, businessInfo } from "@/lib/site-config";
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+// Titoli: Sora (geometrico, moderno). Testo: Plus Jakarta Sans.
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+// Marchio "NETTUNO GOLD": Cinzel, alternativa libera ispirata al Trajan del logo.
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["600", "700"],
   display: "swap",
 });
 
@@ -82,21 +92,21 @@ export default function RootLayout({
   return (
     <html
       lang="it"
-      className={`${cormorant.variable} ${inter.variable} h-full antialiased`}
+      className={`${sora.variable} ${jakarta.variable} ${cinzel.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="relative min-h-full flex flex-col bg-background text-foreground">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <a
           href="#contenuto"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded focus:bg-gold focus:px-4 focus:py-2 focus:text-background"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:m-4 focus:rounded-full focus:bg-gold focus:px-5 focus:py-2 focus:text-background"
         >
           Vai al contenuto
         </a>
         <Header />
-        <main id="contenuto" className="flex-1">
+        <main id="contenuto" className="flex-1 pt-[var(--header-h)]">
           {children}
         </main>
         <Footer />

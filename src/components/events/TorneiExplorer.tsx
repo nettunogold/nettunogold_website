@@ -2,233 +2,231 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, CalendarDays, List } from "lucide-react";
-import { addMonths, subMonths } from "date-fns";
+import Image from "next/image";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ChevronRight, Clock, Layers } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { it } from "date-fns/locale";
 import type { Event } from "@/lib/schemas/event";
-import { buildMonthGrid, isoDate, monthLabel, isSameMonth, isSameDay } from "@/lib/calendar";
-import { cn, formatDateIt, formatEuro } from "@/lib/utils";
-import { getTagColorClasses } from "@/lib/tagColors";
-import { EventCard } from "@/components/events/EventCard";
-import { Badge } from "@/components/ui/Badge";
+import { cn, formatNumberIt } from "@/lib/utils";
 
+type Filter = "tutti" | "singoli" | "multi";
+
+const ease = [0.2, 0.8, 0.2, 1] as const;
+
+// Elenco dei tornei in programma in stile "lobby": filtri rapidi, gruppi per
+// mese e una riga per torneo con le informazioni chiave allineate in colonne.
 export function TorneiExplorer({
   events,
-  formats,
+  seriesTitles = {},
 }: {
   events: Event[];
-  formats: string[];
+  seriesTitles?: Record<string, string>;
 }) {
-  const [format, setFormat] = useState<string>("all");
-  const [view, setView] = useState<"calendario" | "lista">("lista");
-  const [month, setMonth] = useState<Date>(() => new Date());
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>("tutti");
+  const reduce = useReducedMotion();
 
-  const filtered = useMemo(() => {
-    return events.filter((event) => format === "all" || event.format === format);
-  }, [events, format]);
+  const counts = useMemo(
+    () => ({
+      tutti: events.length,
+      singoli: events.filter((e) => !e.seriesSlug).length,
+      multi: events.filter((e) => e.seriesSlug).length,
+    }),
+    [events]
+  );
 
-  const eventsByDay = useMemo(() => {
+  const groups = useMemo(() => {
+    const visible = events.filter((e) =>
+      filter === "tutti" ? true : filter === "singoli" ? !e.seriesSlug : Boolean(e.seriesSlug)
+    );
     const map = new Map<string, Event[]>();
-    for (const event of filtered) {
-      const list = map.get(event.date) ?? [];
-      list.push(event);
-      map.set(event.date, list);
+    for (const event of visible) {
+      const key = event.date.slice(0, 7);
+      map.set(key, [...(map.get(key) ?? []), event]);
     }
-    return map;
-  }, [filtered]);
+    return [...map.entries()];
+  }, [events, filter]);
 
-  const monthDays = useMemo(() => buildMonthGrid(month), [month]);
-  const selectedDayEvents = selectedDay ? (eventsByDay.get(selectedDay) ?? []) : [];
+  if (events.length === 0) {
+    return (
+      <div className="card-soft mx-auto flex max-w-md flex-col items-center gap-2 px-6 py-10 text-center">
+        <span className="font-display text-lg font-semibold text-foreground">Nessun torneo in programma</span>
+        <span className="text-sm text-muted">Il calendario viene aggiornato spesso: torna a trovarci presto.</span>
+      </div>
+    );
+  }
+
+  const tabs: { id: Filter; label: string }[] = [
+    { id: "tutti", label: "Tutti" },
+    { id: "singoli", label: "Singoli" },
+    { id: "multi", label: "Multi-day" },
+  ];
+  const showTabs = counts.singoli > 0 && counts.multi > 0;
 
   return (
-    <div className="flex flex-col gap-10">
-      {/* Filtri */}
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border-subtle bg-surface p-4">
-        <FilterSelect
-          label="Formato"
-          value={format}
-          onChange={setFormat}
-          options={[{ value: "all", label: "Tutti i formati" }, ...formats.map((f) => ({ value: f, label: f }))]}
-        />
-
-        <div className="ml-auto hidden items-center gap-1 rounded-full border border-border-subtle p-1 lg:flex">
-          <button
-            type="button"
-            onClick={() => setView("lista")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-full px-4 py-2 text-xs uppercase tracking-widest transition-colors",
-              view === "lista" ? "bg-gold-gradient text-background" : "text-muted hover:text-gold"
-            )}
-          >
-            <List size={14} /> Lista
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("calendario")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-full px-4 py-2 text-xs uppercase tracking-widest transition-colors",
-              view === "calendario" ? "bg-gold-gradient text-background" : "text-muted hover:text-gold"
-            )}
-          >
-            <CalendarDays size={14} /> Calendario
-          </button>
-        </div>
-      </div>
-
-      {/* Calendario mensile: solo desktop/tablet largo, quando la vista è "calendario" */}
-      {view === "calendario" && (
-        <div className="hidden lg:block">
-          <div className="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => setMonth((m) => subMonths(m, 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 text-gold hover:bg-gold/10"
-              aria-label="Mese precedente"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <h3 className="font-display text-2xl capitalize text-gold-gradient">
-              {monthLabel(month)}
-            </h3>
-            <button
-              type="button"
-              onClick={() => setMonth((m) => addMonths(m, 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 text-gold hover:bg-gold/10"
-              aria-label="Mese successivo"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 overflow-hidden rounded-lg border border-border-subtle">
-            {["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"].map((d) => (
-              <div
-                key={d}
-                className="border-b border-border-subtle bg-surface py-2 text-center text-xs uppercase tracking-widest text-muted"
+    <div className="flex flex-col gap-8">
+      {showTabs && (
+        <div className="glass flex w-fit items-center gap-1 rounded-full p-1" role="tablist" aria-label="Filtra i tornei">
+          {tabs.map((tab) => {
+            const active = filter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setFilter(tab.id)}
+                className={cn(
+                  "relative rounded-full px-4 py-2 text-sm transition-colors duration-300",
+                  active ? "font-semibold text-foreground" : "text-muted hover:text-foreground/90"
+                )}
               >
-                {d}
-              </div>
-            ))}
-            {monthDays.map((day) => {
-              const iso = isoDate(day);
-              const dayEvents = eventsByDay.get(iso) ?? [];
-              const inMonth = isSameMonth(day, month);
-              const selected = selectedDay === iso;
-
-              return (
-                <button
-                  type="button"
-                  key={iso}
-                  onClick={() => dayEvents.length > 0 && setSelectedDay(selected ? null : iso)}
-                  className={cn(
-                    "flex min-h-[122px] flex-col items-start gap-1.5 border-b border-r border-border-subtle p-2 text-left transition-colors last:border-r-0",
-                    inMonth ? "bg-background" : "bg-background/40",
-                    dayEvents.length > 0 && "cursor-pointer hover:bg-gold/5",
-                    selected && "bg-gold/10 ring-1 ring-inset ring-gold/50"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "text-xs",
-                      inMonth ? "text-foreground/80" : "text-muted/40",
-                      isSameDay(day, new Date()) && "font-bold text-gold"
-                    )}
-                  >
-                    {day.getDate()}
-                  </span>
-                  <div className="flex w-full flex-col gap-1.5">
-                    {dayEvents.slice(0, 2).map((event) => {
-                      const colors = getTagColorClasses(event.format);
-                      return (
-                        <span
-                          key={event.slug}
-                          className={cn(
-                            "truncate rounded px-2 py-1 text-xs font-medium leading-tight",
-                            colors.bg,
-                            colors.text
-                          )}
-                          title={event.title}
-                        >
-                          {event.title}
-                        </span>
-                      );
-                    })}
-                    {dayEvents.length > 2 && (
-                      <span className="text-xs text-muted">+{dayEvents.length - 2} altri</span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {selectedDay && selectedDayEvents.length > 0 && (
-            <div className="mt-6 flex flex-col gap-3 rounded-lg border border-gold/30 bg-surface p-5">
-              <h4 className="font-display text-lg capitalize text-gold-light">
-                {formatDateIt(selectedDay)}
-              </h4>
-              {selectedDayEvents.map((event) => (
-                <Link
-                  key={event.slug}
-                  href={`/eventi/${event.slug}`}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded border border-border-subtle bg-background px-4 py-3 hover:border-gold/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <Badge>{event.format}</Badge>
-                    <span className="text-foreground">{event.title}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted">
-                    <span>{event.time}</span>
-                    <span>{formatEuro(event.buyIn)}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                {active && (
+                  <motion.span
+                    layoutId="tornei-filter"
+                    className="absolute inset-0 rounded-full border border-gold/25 bg-gold/[0.12]"
+                    transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                  />
+                )}
+                <span className="relative">
+                  {tab.label}
+                  <span className="tabular ml-1.5 text-xs text-muted">{counts[tab.id]}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {/* Vista lista: griglia unica su tutti i tornei filtrati, sempre visibile su mobile */}
-      <div className={cn("flex flex-col gap-6", view === "calendario" && "lg:hidden")}>
-        {filtered.length === 0 ? (
-          <p className="text-center text-muted">Nessun torneo trovato con questi filtri.</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((event) => (
-              <EventCard key={event.slug} event={event} />
-            ))}
-          </div>
-        )}
-      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={filter}
+          initial={reduce ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduce ? undefined : { opacity: 0, y: -4 }}
+          transition={{ duration: 0.3, ease }}
+          className="flex flex-col gap-10"
+        >
+          {groups.map(([month, list]) => (
+            <section key={month} className="flex flex-col gap-3">
+              <div className="flex items-center gap-4 px-1">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
+                  {format(parseISO(`${month}-01`), "LLLL yyyy", { locale: it })}
+                </h3>
+                <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+                <span className="tabular text-xs text-muted">
+                  {list.length} {list.length === 1 ? "torneo" : "tornei"}
+                </span>
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                {list.map((event, i) => (
+                  <motion.li
+                    key={event.slug}
+                    initial={reduce ? false : { opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.04, ease }}
+                  >
+                    <TorneoRow
+                      event={event}
+                      seriesTitle={event.seriesSlug ? (seriesTitles[event.seriesSlug] ?? event.seriesSlug) : undefined}
+                    />
+                  </motion.li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
 
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-}) {
+// Colonna numerica a larghezza fissa: le colonne restano allineate tra una
+// riga e l'altra anche quando un dato manca (al suo posto un trattino).
+function Stat({ label, value, gold = false }: { label: string; value: number | null; gold?: boolean }) {
   return (
-    <label className="flex flex-col gap-1 text-xs uppercase tracking-widest text-muted">
-      {label}
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="min-h-[44px] rounded border border-border-subtle bg-background px-3 py-2 text-sm normal-case tracking-normal text-foreground focus:border-gold focus:outline-none"
+    <div className="flex w-[4.5rem] flex-col items-start gap-0.5 md:w-20 md:items-end">
+      <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted">{label}</span>
+      <span
+        className={cn(
+          "tabular text-base font-semibold sm:text-lg",
+          value == null ? "text-muted/50" : gold ? "text-gold-light" : "text-foreground"
+        )}
       >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        {value == null ? "—" : formatNumberIt(value)}
+      </span>
+    </div>
+  );
+}
+
+function TorneoRow({ event, seriesTitle }: { event: Event; seriesTitle?: string }) {
+  const date = parseISO(event.date);
+
+  return (
+    <Link
+      href={`/eventi/${event.slug}`}
+      className="card-soft group flex items-stretch gap-3 overflow-hidden p-2.5 sm:gap-5 sm:p-3"
+    >
+      {/* Locandina */}
+      <div className="relative w-16 shrink-0 overflow-hidden rounded-xl bg-white/[0.03] sm:w-20">
+        <Image
+          src={event.images[0]}
+          alt={`Locandina ${event.title}`}
+          fill
+          sizes="80px"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+        />
+        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10" />
+      </div>
+
+      {/* Data */}
+      <div className="flex w-12 shrink-0 flex-col items-center justify-center sm:w-14">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+          {format(date, "EEE", { locale: it })}
+        </span>
+        <span className="tabular font-display text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
+          {format(date, "d")}
+        </span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gold/80">
+          {format(date, "MMM", { locale: it })}
+        </span>
+      </div>
+
+      <span aria-hidden="true" className="my-2 w-px shrink-0 bg-white/[0.06]" />
+
+      {/* Contenuto */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-3 py-1 pr-1 md:flex-row md:items-center md:justify-between md:gap-6">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          {seriesTitle && (
+            <span className="flex w-fit max-w-full items-center gap-1.5 rounded-full border border-gold/20 bg-gold/[0.07] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold-light/90">
+              <Layers size={11} className="shrink-0" />
+              <span className="truncate">
+                {seriesTitle}
+                {event.phase ? ` · ${event.phase}` : ""}
+              </span>
+            </span>
+          )}
+          <span className="line-clamp-2 font-display text-base font-semibold leading-snug md:truncate text-foreground transition-colors duration-300 group-hover:text-gold-light sm:text-lg">
+            {event.title}
+          </span>
+          <span className="tabular flex items-center gap-1.5 text-sm text-foreground/70">
+            <Clock size={13} className="text-gold/80" />
+            {event.time}
+          </span>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-3 sm:gap-5">
+          <Stat label="Buy-in" value={event.buyIn} />
+          <Stat label="Garantito" value={event.guaranteed} gold />
+          <span className="hidden lg:block">
+            <Stat label="Stack" value={event.startingStack} />
+          </span>
+          <span className="ml-auto hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] text-muted transition-all duration-300 group-hover:translate-x-0.5 group-hover:border-gold/30 group-hover:text-gold-light md:flex">
+            <ChevronRight size={16} />
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }

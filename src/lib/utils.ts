@@ -22,6 +22,16 @@ export function formatDateShortIt(dateISO: string): string {
   return format(date, "d MMM", { locale: it });
 }
 
+export function formatDayNumber(dateISO: string): string {
+  const date = new Date(`${dateISO}T00:00:00`);
+  return format(date, "d", { locale: it });
+}
+
+export function formatMonthFullIt(dateISO: string): string {
+  const date = new Date(`${dateISO}T00:00:00`);
+  return format(date, "MMMM", { locale: it }).toUpperCase();
+}
+
 export function formatNumberIt(value: number): string {
   const rounded = Math.round(value);
   const negative = rounded < 0;
@@ -30,6 +40,8 @@ export function formatNumberIt(value: number): string {
   return negative ? `-${grouped}` : grouped;
 }
 
-export function formatEuro(amount: number): string {
-  return `${formatNumberIt(amount)} €`;
+export function formatDateRangeIt(startISO: string, endISO: string): string {
+  const start = new Date(`${startISO}T00:00:00`);
+  const end = new Date(`${endISO}T00:00:00`);
+  return `${format(start, "d MMMM yyyy", { locale: it })} – ${format(end, "d MMMM yyyy", { locale: it })}`;
 }

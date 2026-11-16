@@ -1,0 +1,161 @@
+# ============================================================================
+# CONFIGURAZIONE PANNELLO CONTENUTI (Decap CMS) — Nettuno Gold
+# ============================================================================
+# Questo file definisce i campi che lo staff vede nel pannello /admin.
+# Ogni collection legge/scrive i file .json in una cartella di content/,
+# la stessa che legge il sito (src/lib/data/*.ts + src/lib/content-loader.ts).
+#
+# PRODUZIONE: login con GitHub tramite il provider OAuth di Netlify (vedi
+# documentazione/pubblicazione-sito-passo-passo.md, Fase 3, e il README).
+#
+# SVILUPPO LOCALE: lancia "npx decap-server" in un terminale e "npm run dev"
+# in un altro; con local_backend: true qui sotto, il pannello scrive
+# direttamente sui file locali senza bisogno di login GitHub.
+# ============================================================================
+
+local_backend: true
+
+backend:
+  name: github
+  repo: nettunogold/nettunogold_website
+  branch: main
+  # "[skip netlify]": i salvataggi dal pannello NON ripubblicano il sito (e
+  # non consumano crediti Netlify). Le modifiche vanno online tutte insieme,
+  # con un solo deploy, dal pulsante "Pubblica sul sito" nel pannello.
+  commit_messages:
+    create: "Nuovo in {{collection}}: “{{slug}}” [skip netlify]"
+    update: "Modifica in {{collection}}: “{{slug}}” [skip netlify]"
+    delete: "Eliminato da {{collection}}: “{{slug}}” [skip netlify]"
+    uploadMedia: "Immagine caricata: “{{path}}” [skip netlify]"
+    deleteMedia: "Immagine eliminata: “{{path}}” [skip netlify]"
+
+publish_mode: simple
+media_folder: "public/eventi"
+public_folder: "/eventi"
+
+collections:
+  - name: "eventi"
+    label: "Tornei"
+    folder: "content/eventi"
+    extension: "json"
+    format: "json"
+    create: true
+    slug: "{{fields.torneo.year}}-{{fields.torneo.month}}-{{fields.torneo.day}}-{{slug}}"
+    summary: "{{fields.torneo.title}} — {{fields.torneo.day}}/{{fields.torneo.month}}/{{fields.torneo.year}}"
+    identifier_field: "torneo.title"
+    # Form tornei: niente anteprima, sezioni disegnate da widget personalizzati
+    # (registrati in public/admin/index.html) disposti a griglia. L'ordine qui
+    # sotto è l'ordine di visualizzazione.
+    editor:
+      preview: false
+    fields:
+      # Slug esplicito già presente nel file (es. link dei flight alla serie):
+      # campo nascosto, serve solo a non perderlo quando si salva dal pannello.
+      # Nei contenuti nuovi resta vuoto e il sito lo genera dal titolo.
+      - { label: "Slug", name: "slug", widget: "hidden", required: false }
+      # I sotto-campi non vengono disegnati (lo fa il widget), ma servono a
+      # Decap per trovare "torneo.title" (identifier_field) quando genera il
+      # nome del file e il riepilogo nella lista.
+      - label: "NOME E DATA"
+        name: "torneo"
+        widget: "ng-torneo"
+        fields:
+          - { label: "Nome", name: "title", widget: "string" }
+          - { label: "Giorno", name: "day", widget: "string" }
+          - { label: "Mese", name: "month", widget: "string" }
+          - { label: "Anno", name: "year", widget: "string" }
+          - { label: "Orario", name: "time", widget: "string" }
+      - { label: "DETTAGLI", name: "dettagli", widget: "ng-dettagli" }
+      - { label: "LOCANDINA", name: "images", widget: "ng-locandine", required: false }
+      - { label: "SERIES", name: "serie", widget: "ng-series", required: false }
+      - { label: "DESCRIZIONE", name: "description", widget: "ng-descrizione", required: false }
+
+  - name: "serie"
+    label: "Serie / Festival"
+    folder: "content/serie"
+    extension: "json"
+    format: "json"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{fields.informazioni.title}} — {{fields.informazioni.inizio.day}}/{{fields.informazioni.inizio.month}}/{{fields.informazioni.inizio.year}}"
+    identifier_field: "informazioni.title"
+    # Stessa impostazione del form tornei: niente anteprima, sezioni disegnate
+    # dai widget personalizzati di public/admin/index.html, disposte a griglia.
+    editor:
+      preview: false
+    fields:
+      # Slug esplicito già presente nel file (es. link dei flight alla serie):
+      # campo nascosto, serve solo a non perderlo quando si salva dal pannello.
+      # Nei contenuti nuovi resta vuoto e il sito lo genera dal titolo.
+      - { label: "Slug", name: "slug", widget: "hidden", required: false }
+      # Sotto-campi solo descrittivi: servono a Decap per trovare
+      # "informazioni.title" (nome del file e riepilogo in lista).
+      - label: "NOME E DATE"
+        name: "informazioni"
+        widget: "ng-serie-info"
+        fields:
+          - { label: "Nome", name: "title", widget: "string" }
+          - { label: "Inizio", name: "inizio", widget: "object", fields: [{ label: "Giorno", name: "day", widget: "string" }, { label: "Mese", name: "month", widget: "string" }, { label: "Anno", name: "year", widget: "string" }] }
+          - { label: "Fine", name: "fine", widget: "object", fields: [{ label: "Giorno", name: "day", widget: "string" }, { label: "Mese", name: "month", widget: "string" }, { label: "Anno", name: "year", widget: "string" }] }
+      - { label: "DETTAGLI", name: "dettagli", widget: "ng-serie-dettagli", required: false }
+      - { label: "LOCANDINA", name: "images", widget: "ng-locandine", required: false }
+      - { label: "DESCRIZIONE", name: "description", widget: "ng-descrizione", required: false }
+
+  - name: "news"
+    label: "News"
+    folder: "content/news"
+    extension: "json"
+    format: "json"
+    create: true
+    slug: "{{fields.notizia.year}}-{{fields.notizia.month}}-{{fields.notizia.day}}-{{slug}}"
+    summary: "{{fields.notizia.title}} — {{fields.notizia.day}}/{{fields.notizia.month}}/{{fields.notizia.year}}"
+    identifier_field: "notizia.title"
+    # Stessa impostazione di tornei e series: niente anteprima, sezioni
+    # disegnate dai widget personalizzati di public/admin/index.html.
+    editor:
+      preview: false
+    fields:
+      # Slug esplicito già presente nel file (es. link dei flight alla serie):
+      # campo nascosto, serve solo a non perderlo quando si salva dal pannello.
+      # Nei contenuti nuovi resta vuoto e il sito lo genera dal titolo.
+      - { label: "Slug", name: "slug", widget: "hidden", required: false }
+      # Sotto-campi solo descrittivi: servono a Decap per trovare
+      # "notizia.title" (nome del file e riepilogo in lista).
+      - label: "TITOLO E DATA"
+        name: "notizia"
+        widget: "ng-news-info"
+        fields:
+          - { label: "Titolo", name: "title", widget: "string" }
+          - { label: "Giorno", name: "day", widget: "string" }
+          - { label: "Mese", name: "month", widget: "string" }
+          - { label: "Anno", name: "year", widget: "string" }
+      - { label: "DETTAGLI", name: "dettagli", widget: "ng-news-dettagli" }
+      - { label: "IMMAGINI", name: "images", widget: "ng-locandine", required: false, default_image: "/news/placeholder-news.svg" }
+      - { label: "TESTO", name: "body", widget: "ng-news-testo" }
+
+  - name: "classifiche"
+    label: "Classifiche"
+    folder: "content/classifiche"
+    extension: "json"
+    format: "json"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{fields.classifica.title}} — aggiornata al {{fields.classifica.day}}/{{fields.classifica.month}}/{{fields.classifica.year}}"
+    identifier_field: "classifica.title"
+    editor:
+      preview: false
+    fields:
+      # Slug esplicito già presente nel file (es. link dei flight alla serie):
+      # campo nascosto, serve solo a non perderlo quando si salva dal pannello.
+      # Nei contenuti nuovi resta vuoto e il sito lo genera dal titolo.
+      - { label: "Slug", name: "slug", widget: "hidden", required: false }
+      - label: "NOME E DATA"
+        name: "classifica"
+        widget: "ng-classifica-info"
+        fields:
+          - { label: "Titolo", name: "title", widget: "string" }
+          - { label: "Giorno", name: "day", widget: "string" }
+          - { label: "Mese", name: "month", widget: "string" }
+          - { label: "Anno", name: "year", widget: "string" }
+          - { label: "In corso", name: "seriesActive", widget: "boolean" }
+      - { label: "CLASSIFICA", name: "standings", widget: "ng-classifica-righe" }

@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock, Coins, Layers, Timer, ArrowLeft } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, Coins, Layers, Timer } from "lucide-react";
 import { getEventBySlug, getEvents } from "@/lib/data/events";
-import { Container } from "@/components/ui/Container";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { formatDateIt, formatEuro, formatNumberIt } from "@/lib/utils";
+import { Reveal } from "@/components/ui/Reveal";
+import { DetailShell, DetailTitle, StatTile, GuaranteedPanel, DescriptionCard } from "@/components/events/Detail";
+import { formatDateIt, formatNumberIt } from "@/lib/utils";
 
 export function generateStaticParams() {
   return getEvents().map((event) => ({ slug: event.slug }));
@@ -22,13 +20,15 @@ export async function generateMetadata({
   const event = getEventBySlug(slug);
   if (!event) return {};
 
+  const description = event.description ?? event.title;
+
   return {
     title: event.title,
-    description: event.description,
+    description,
     openGraph: {
       title: event.title,
-      description: event.description,
-      images: [{ url: event.image }],
+      description,
+      images: event.images.map((url) => ({ url })),
     },
   };
 }
@@ -42,125 +42,46 @@ export default async function EventoPage({
   const event = getEventBySlug(slug);
   if (!event) notFound();
 
-  const stats = [
-    { icon: CalendarDays, label: "Data", value: formatDateIt(event.date) },
-    { icon: Clock, label: "Orario", value: event.time },
-    { icon: Coins, label: "Buy-in", value: formatEuro(event.buyIn) },
-    { icon: Layers, label: "Stack iniziale", value: formatNumberIt(event.startingStack) },
-  ];
-
   return (
-    <div className="py-12 md:py-20">
-      <Container className="flex flex-col gap-10">
-        <Link
-          href="/tornei"
-          className="inline-flex w-fit items-center gap-2 text-sm uppercase tracking-widest text-muted hover:text-gold"
-        >
-          <ArrowLeft size={16} /> Torna al calendario
-        </Link>
-
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-border-subtle">
-              <Image
-                src={event.image}
-                alt={`Locandina ${event.title}`}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 40vw"
-              />
-            </div>
+    <DetailShell backHref="/tornei" backLabel="Torna al calendario" images={event.images} imageAlt={`Locandina ${event.title}`}>
+      <DetailTitle
+        kicker={
+          <div className="flex flex-wrap gap-2">
+            <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground/90">
+              <CalendarDays size={15} className="text-gold" />
+              {formatDateIt(event.date)}
+            </span>
+            <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground/90">
+              <Clock size={15} className="text-gold" />
+              {event.time}
+            </span>
           </div>
+        }
+      >
+        {event.title}
+      </DetailTitle>
 
-          <div className="flex flex-col gap-6 lg:col-span-3">
-            <div className="flex flex-wrap gap-2">
-              <Badge>{event.format}</Badge>
-              {event.series && (
-                <Badge className="border-gold-light/50 bg-gold-light/10 text-gold-light">
-                  {event.series}
-                </Badge>
-              )}
-            </div>
+      <Reveal delay={0.05} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <StatTile icon={Coins} label="Buy-in" value={formatNumberIt(event.buyIn)} highlight />
+        {event.startingStack ? (
+          <StatTile icon={Layers} label="Stack iniziale" value={formatNumberIt(event.startingStack)} />
+        ) : null}
+        <StatTile
+          icon={Timer}
+          label="Durata livelli"
+          value={event.levelDurationMinutes ? `${event.levelDurationMinutes} min` : "—"}
+        />
+      </Reveal>
 
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl text-gold-gradient">
-              {event.title}
-            </h1>
+      {event.guaranteed ? <GuaranteedPanel label="Montepremi garantito" amount={event.guaranteed} /> : null}
 
-            <p className="max-w-2xl text-foreground/85 leading-relaxed">{event.description}</p>
+      {event.description ? <DescriptionCard text={event.description} /> : null}
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-lg border border-border-subtle bg-surface p-4"
-                >
-                  <stat.icon size={18} className="text-gold" />
-                  <div className="mt-2 text-xs uppercase tracking-widest text-muted">
-                    {stat.label}
-                  </div>
-                  <div className="mt-1 font-medium text-foreground">{stat.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {event.guaranteed ? (
-              <div className="rounded-lg border border-gold/40 bg-gold/10 p-5">
-                <div className="text-xs uppercase tracking-widest text-gold">Montepremi garantito</div>
-                <div className="mt-1 font-display text-3xl text-gold-light">
-                  {formatEuro(event.guaranteed)}
-                </div>
-              </div>
-            ) : null}
-
-            {event.lateRegistration && (
-              <div className="flex items-center gap-2 text-sm text-muted">
-                <Timer size={16} className="text-gold" />
-                Late registration: {event.lateRegistration}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button href="/tornei" size="lg">
-                Altri tornei
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {event.structure && event.structure.length > 0 && (
-          <div className="flex flex-col gap-4">
-            <h2 className="font-display text-2xl text-gold-gradient">Struttura livelli</h2>
-            <div className="overflow-x-auto rounded-lg border border-border-subtle">
-              <table className="w-full min-w-[480px] text-left text-sm">
-                <thead className="bg-surface text-xs uppercase tracking-widest text-muted">
-                  <tr>
-                    <th className="px-4 py-3">Livello</th>
-                    <th className="px-4 py-3">Small Blind</th>
-                    <th className="px-4 py-3">Big Blind</th>
-                    <th className="px-4 py-3">Ante</th>
-                    <th className="px-4 py-3">Durata</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {event.structure.map((level) => (
-                    <tr key={level.level} className="border-t border-border-subtle">
-                      <td className="px-4 py-3 text-gold-light">{level.level}</td>
-                      <td className="px-4 py-3">{formatNumberIt(level.smallBlind)}</td>
-                      <td className="px-4 py-3">{formatNumberIt(level.bigBlind)}</td>
-                      <td className="px-4 py-3">{level.ante ? formatNumberIt(level.ante) : "—"}</td>
-                      <td className="px-4 py-3">{level.duration} min</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-xs text-muted">
-              Struttura indicativa dei primi livelli; consulta lo staff in sala per i livelli successivi.
-            </p>
-          </div>
-        )}
-      </Container>
-    </div>
+      <Reveal>
+        <Button href="/tornei" size="lg" className="w-full sm:w-auto">
+          Altri tornei <ArrowRight size={18} />
+        </Button>
+      </Reveal>
+    </DetailShell>
   );
 }

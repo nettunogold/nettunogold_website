@@ -3,46 +3,60 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { ArrowRight, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import { Aurora } from "@/components/ui/Aurora";
+import { Eyebrow } from "@/components/ui/SectionHeading";
 import { GoldParticles } from "@/components/sections/GoldParticles";
+const ease = [0.2, 0.8, 0.2, 1] as const;
 
-// Hero essenziale: sfondo scuro pieno, un pulviscolo dorato raccolto
-// attorno all'emblema, e logo/nome sempre il fuoco assoluto della
-// composizione, senza altro a competere con loro.
+// Hero: luci dorate in movimento, emblema fermo dentro un anello d'oro in
+// lenta rotazione, nome in grande (font del marchio) con riflesso animato.
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null);
   const reduceMotion = Boolean(useReducedMotion());
 
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const d = reduceMotion ? 0 : 1;
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 1 - 0.9 * d]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, -80 * d]);
+  const emblemScale = useTransform(scrollYProgress, [0, 1], [1, 1 - 0.15 * d]);
 
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 1 - 0.85 * d]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, -60 * d]);
+  const fadeUp = (delay: number) => ({
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.8, ease, delay },
+  });
 
   return (
     <section
       ref={heroRef}
-      className="relative flex min-h-[100svh] items-center overflow-hidden bg-background"
+      className="relative -mt-[var(--header-h)] flex min-h-[88svh] items-center sm:min-h-[100svh] overflow-hidden pt-[var(--header-h)]"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background to-transparent"
-      />
+      <Aurora intensity={1.15} />
 
       <motion.div style={{ opacity: contentOpacity, y: contentY }} className="relative z-10 w-full">
-        <Container className="flex flex-col items-center gap-8 py-24 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="relative flex items-center justify-center"
-          >
+        <Container className="flex flex-col items-center gap-7 py-10 text-center sm:gap-8 sm:py-16 md:py-24">
+          <motion.div {...fadeUp(0)} style={{ scale: emblemScale }} className="relative flex items-center justify-center">
             <GoldParticles reduceMotion={reduceMotion} />
+
+            {/* Anello d'oro in rotazione dietro l'emblema. Centrato sul cerchio del
+                logo, che sta al 55,4% dell'altezza (sopra sporge il tridente). */}
+            <div
+              aria-hidden="true"
+              className="absolute left-1/2 top-[55.4%] h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 blur-[2px] animate-spin-slow sm:h-80 sm:w-80"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, transparent 0deg, rgba(240,199,94,0.55) 60deg, transparent 140deg, transparent 200deg, rgba(201,162,39,0.4) 260deg, transparent 330deg)",
+                WebkitMask: "radial-gradient(circle, transparent 62%, #000 63%, #000 66%, transparent 67%)",
+                mask: "radial-gradient(circle, transparent 62%, #000 63%, #000 66%, transparent 67%)",
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute left-1/2 top-[55.4%] h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/20 blur-3xl sm:h-64 sm:w-64"
+            />
 
             <Image
               src="/logo/nettuno-gold-emblem-400.png"
@@ -50,47 +64,31 @@ export function Hero() {
               width={400}
               height={450}
               priority
-              className="relative z-10 h-40 w-auto sm:h-52 drop-shadow-[0_0_40px_rgba(201,162,39,0.25)]"
+              className="relative z-10 h-48 w-auto drop-shadow-[0_0_45px_rgba(201,162,39,0.35)] sm:h-60"
             />
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-            className="flex flex-col items-center gap-4"
+          <motion.h1
+            {...fadeUp(0.2)}
+            className="font-brand text-[3.2rem] font-bold leading-[1] tracking-[0.02em] text-gold-shine sm:text-7xl md:text-8xl"
           >
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl tracking-wide text-gold-gradient">
-              NETTUNO GOLD
-            </h1>
-            <p className="text-xs sm:text-sm uppercase tracking-[0.35em] text-muted">
-              Poker Room · Bologna
-            </p>
+            NETTUNO
+            <br className="sm:hidden" /> GOLD
+          </motion.h1>
+
+          <motion.div {...fadeUp(0.3)} className="hidden sm:block">
+            <Eyebrow>Il punto di riferimento del Texas Hold&apos;em a Bologna</Eyebrow>
           </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
-            className="max-w-xl text-base sm:text-lg text-foreground/85"
-          >
-            Dal 2007, il punto di riferimento del Texas Hold&apos;em a Bologna: 18 tavoli,
-            staff professionale e quasi 150 tornei all&apos;anno.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.45 }}
-            className="flex flex-col gap-4 sm:flex-row"
-          >
+          <motion.div {...fadeUp(0.4)} className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <Button href="/tornei" size="lg">
-              Calendario tornei
+              Calendario tornei <ArrowRight size={18} />
             </Button>
             <Button href="/contatti" variant="secondary" size="lg">
-              Come raggiungerci
+              <MapPin size={18} /> Come raggiungerci
             </Button>
           </motion.div>
+
         </Container>
       </motion.div>
 
@@ -98,15 +96,15 @@ export function Hero() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.9 }}
+        transition={{ duration: 0.7, delay: 1.1 }}
         style={{ opacity: contentOpacity }}
-        className="absolute inset-x-0 bottom-8 z-10 flex justify-center"
+        className="absolute inset-x-0 bottom-6 z-10 hidden justify-center md:flex"
       >
-        <div className="flex h-9 w-6 items-start justify-center rounded-full border border-gold/40 p-1.5">
+        <div className="glass flex h-10 w-6 items-start justify-center rounded-full p-1.5">
           <motion.span
-            animate={reduceMotion ? {} : { y: [0, 10, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            className="h-1.5 w-1.5 rounded-full bg-gold"
+            animate={reduceMotion ? {} : { y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="h-1.5 w-1.5 rounded-full bg-gold-light"
           />
         </div>
       </motion.div>
