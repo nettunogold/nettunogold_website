@@ -18,16 +18,25 @@ function parseAllSeries(): Series[] {
     return result.data;
   });
 
-  // Date della serie ricavate dai suoi flight, quando ne ha: il calendario
-  // reale sono i flight. Così, se lo staff sposta i flight a nuove date
-  // (es. per riproporre la serie senza ricrearla), la serie torna visibile
-  // e mostra le date giuste anche se le date nella scheda serie non sono
-  // state aggiornate.
+  // Le date della serie sono quelle della scheda serie. I flight possono
+  // solo ALLUNGARE il periodo, mai accorciarlo o nasconderla (un flight con
+  // una data sbagliata non deve far sparire la serie):
+  //  - se ci sono flight futuri oltre la data di fine, la fine si sposta lì;
+  //  - se la serie risulta conclusa ma ha flight futuri (serie riproposta
+  //    spostando i flight), il periodo diventa quello dei flight futuri.
+  const today = todayISO();
   const events = getEvents();
   const withFlightDates = parsed.map((series) => {
-    const dates = events.filter((event) => event.seriesSlug === series.slug).map((event) => event.date).sort();
-    if (dates.length === 0) return series;
-    return { ...series, startDate: dates[0], endDate: dates[dates.length - 1] };
+    const upcoming = events
+      .filter((event) => event.seriesSlug === series.slug && event.date >= today)
+      .map((event) => event.date)
+      .sort();
+    if (upcoming.length === 0) return series;
+    const lastFlight = upcoming[upcoming.length - 1];
+    if (series.endDate >= today) {
+      return { ...series, endDate: lastFlight > series.endDate ? lastFlight : series.endDate };
+    }
+    return { ...series, startDate: upcoming[0], endDate: lastFlight };
   });
 
   return withFlightDates.sort((a, b) => a.startDate.localeCompare(b.startDate));

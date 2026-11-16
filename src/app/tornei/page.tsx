@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getUpcomingEvents } from "@/lib/data/events";
-import { getActiveSeries } from "@/lib/data/series";
+import { getActiveSeries, getAllSeries } from "@/lib/data/series";
 import { Container } from "@/components/ui/Container";
 import { TorneiExplorer } from "@/components/events/TorneiExplorer";
 import { SeriesCard } from "@/components/events/SeriesCard";
@@ -22,11 +22,9 @@ export const metadata: Metadata = {
 export default function TorneiPage() {
   const upcomingEvents = getUpcomingEvents();
 
-  // I singoli flight di un multi-day (Day 1A, 2B, Final Day...) non
-  // compaiono qui: sono coperti dalla sezione "Multi-Day in programma" (con
-  // link alla pagina della serie, che li elenca tutti). Questa lista/
-  // calendario mostra solo i tornei a sé stanti.
-  const standaloneEvents = upcomingEvents.filter((event) => !event.seriesSlug);
+  // La lista mostra tutti i tornei in programma, compresi i singoli flight
+  // dei multi-day (Day 1A, Final Day...), segnalati con il nome della serie.
+  const seriesTitles = Object.fromEntries(getAllSeries().map((series) => [series.slug, series.title]));
 
   const activeSeries = getActiveSeries();
 
@@ -38,15 +36,22 @@ export default function TorneiPage() {
         title="Tornei"
       />
       <div className="pb-16 pt-10 sm:pt-14 md:pb-24">
-        <Container className="flex flex-col gap-12 sm:gap-16">
+        <Container className="flex flex-col gap-14 sm:gap-20">
           {activeSeries.length > 0 && (
             <div className="flex flex-col gap-6">
               <SectionTag>Multi-Day in programma</SectionTag>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div
+                className={
+                  activeSeries.length === 1
+                    ? "grid grid-cols-1"
+                    : "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3"
+                }
+              >
                 {activeSeries.map((series) => (
                   <SeriesCard
                     key={series.slug}
                     series={series}
+                    wide={activeSeries.length === 1}
                     flightCount={
                       upcomingEvents.filter((event) => event.seriesSlug === series.slug).length
                     }
@@ -58,7 +63,7 @@ export default function TorneiPage() {
 
           <div className="flex flex-col gap-6">
             <SectionTag>Tornei in Programma</SectionTag>
-            <TorneiExplorer events={standaloneEvents} />
+            <TorneiExplorer events={upcomingEvents} seriesTitles={seriesTitles} />
           </div>
         </Container>
       </div>
@@ -68,7 +73,7 @@ export default function TorneiPage() {
 
 function SectionTag({ children }: { children: React.ReactNode }) {
   return (
-    <Reveal>
+    <Reveal y={10}>
       <Eyebrow>{children}</Eyebrow>
     </Reveal>
   );

@@ -25,7 +25,6 @@ export default function ClassifichePage() {
   return (
     <>
       <PageHero
-        eyebrow="Soci"
         title="Classifiche"
         subtitle="Classifica della serie in corso e classifica generale annuale, aggiornate dopo ogni tornei valido."
       />
@@ -91,8 +90,7 @@ export default function ClassifichePage() {
 
           <Reveal className="flex flex-col items-center gap-6">
             <p className="card-static w-full p-5 text-center text-sm text-muted">
-              Dati mostrati a titolo dimostrativo: i punteggi reali verranno aggiornati dallo staff dopo ogni torneo
-              valido per la classifica.
+              I dati mostrati potrebbero non essere aggiornati in tempo reale.
             </p>
             <Button href="/classifiche/regolamento" variant="secondary" size="lg">
               Leggi il regolamento <ArrowRight size={18} />

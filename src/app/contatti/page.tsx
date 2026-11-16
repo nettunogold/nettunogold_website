@@ -72,23 +72,7 @@ export default function ContattiPage() {
                 </Reveal>
               ))}
 
-              <Reveal delay={0.25}>
-                <div className="card-static flex items-start gap-4 p-5">
-                  <span className="icon-orb h-11 w-11 shrink-0">
-                    <Clock size={19} />
-                  </span>
-                  <div className="flex-1">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Orari</div>
-                    {businessInfo.openingHours.map((slot) => (
-                      <div key={slot.days} className="mt-1 flex justify-between gap-4 font-medium text-foreground">
-                        <span>{slot.days}</span>
-                        <span className="text-gold-light">{slot.hours}</span>
-                      </div>
-                    ))}
-                    <span className="mt-1 block text-xs text-muted/70">Orari indicativi, da confermare.</span>
-                  </div>
-                </div>
-              </Reveal>
+              
 
               <Reveal delay={0.3} className="flex gap-3 pt-1">
                 <a href={businessInfo.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Nettuno Gold su Instagram" className={socialClass}>

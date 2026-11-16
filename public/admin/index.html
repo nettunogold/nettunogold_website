@@ -646,6 +646,52 @@
       /* Testi di caricamento/errore di Decap leggibili sul tema scuro */
       [class*="Loader"],
       [class*="LoaderText"] { color: var(--ng-text) !important; }
+      /* Eliminazione rapida dall'elenco */
+      .ng-has-del { position: relative; }
+      .ng-has-del > a { padding-right: 60px !important; }
+      .ng-del {
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 9px;
+        border: 1px solid rgba(179, 58, 50, 0.35);
+        background: rgba(179, 58, 50, 0.12);
+        color: #f0a39c;
+        cursor: pointer;
+        opacity: 0.75;
+        transition: opacity 0.15s, background 0.15s, color 0.15s;
+        z-index: 2;
+      }
+      .ng-has-del:hover .ng-del { opacity: 1; }
+      .ng-del:hover { background: #a8352d; color: #fff; opacity: 1; }
+      /* Vista a griglia: card scure e cestino in alto a destra */
+      [class*="GridCardLink"],
+      [class*="GridCard"] [class*="CardBody"] { background: var(--ng-panel) !important; color: var(--ng-text) !important; }
+      [class*="GridCard"] [class*="CardBody"]::before,
+      [class*="GridCard"] [class*="CardBody"]::after { display: none !important; }
+      [class*="GridCard"] [class*="CardHeading"] { color: var(--ng-text) !important; padding-right: 44px; }
+      [class*="GridCard"].ng-has-del > a { padding-right: 0 !important; }
+      [class*="GridCard"] .ng-del { top: 12px; right: 12px; transform: none; }
+      .ng-del-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(8, 9, 12, 0.92);
+        backdrop-filter: blur(4px);
+        color: var(--ng-text);
+        font: 600 16px/1.4 system-ui, sans-serif;
+        letter-spacing: 0.02em;
+      }
     </style>
   </head>
   <body>
@@ -1043,7 +1089,10 @@
             this.props.onOpenMediaLibrary({
               controlID: this.controlID,
               forImage: true,
-              privateUpload: false,
+              // privateUpload NON va impostato (né a false): Decap scarta la
+              // lista immagini se questo valore non coincide con quello della
+              // risposta del server (che non lo imposta) e la libreria resta su
+              // "Loading..." per sempre. Il widget immagine di Decap fa lo stesso.
               value: "",
               allowMultiple: false,
               field: this.props.field,
@@ -1658,14 +1707,134 @@
           }
           showNotice("Operazione non riuscita.", "Il pannello non è riuscito a comunicare con il server. Controlla che \"npm run cms\" sia avviato e premi Riprova (i dati già salvati non vanno persi).");
         }
+        // Rete di sicurezza: form rimasto vuoto (nessun errore visibile, ma
+        // nessuna sezione disegnata dopo 6 secondi) -> una ricarica automatica.
+        // Avviene solo se il form non è mai comparso, quindi non si perdono
+        // dati inseriti.
+        var blankTimer = null;
+        var blankHash = null;
+        function watchBlankEditor() {
+          var onEditor = /\/entries\/|\/new(\?|$)/.test(location.hash);
+          if (!onEditor || document.querySelector(".ng-sec") || deleting) {
+            if (blankTimer) { clearTimeout(blankTimer); blankTimer = null; }
+            return;
+          }
+          if (blankTimer && blankHash === location.hash) return;
+          if (blankTimer) clearTimeout(blankTimer);
+          blankHash = location.hash;
+          blankTimer = setTimeout(function () {
+            blankTimer = null;
+            if (document.querySelector(".ng-sec") || location.hash !== blankHash || serverDown) return;
+            var key = "ng-retry:" + location.hash;
+            var tries = 0;
+            try { tries = Number(sessionStorage.getItem(key) || 0); } catch (e) {}
+            if (tries < 1) {
+              try { sessionStorage.setItem(key, String(tries + 1)); } catch (e) {}
+              console.warn("[pannello] form non comparso dopo 6 secondi: ricarico la pagina");
+              location.reload();
+            } else {
+              showNotice("Il contenuto non si è aperto.", "Premi Riprova. Se succede ancora, controlla che \"npm run cms\" e \"npm run dev\" siano avviati.");
+            }
+          }, 6000);
+        }
+        window.addEventListener("hashchange", watchBlankEditor);
+
         // Pagina caricata correttamente: azzera i tentativi automatici.
         function resetRetries() {
           if (!document.querySelector(".ng-sec")) return;
           try { sessionStorage.removeItem("ng-retry:" + location.hash); } catch (e) {}
         }
 
+        // ---------------- ELIMINAZIONE RAPIDA DALL'ELENCO ----------------
+        // Cestino su ogni contenuto dell'elenco. Decap non offre un'API per
+        // eliminare da fuori dall'editor, quindi si usa il suo stesso flusso
+        // (già testato): dopo la conferma si apre il contenuto dietro un velo
+        // "Eliminazione in corso" e si preme "Delete entry". Funziona con il
+        // server locale e con GitHub, e l'elenco si aggiorna da solo.
+        var deleting = false;
+        var deleteOverlay = null;
+        function setDeleteOverlay(text) {
+          if (!deleteOverlay) {
+            deleteOverlay = document.createElement("div");
+            deleteOverlay.className = "ng-del-overlay";
+            document.body.appendChild(deleteOverlay);
+          }
+          deleteOverlay.textContent = text || "";
+          deleteOverlay.style.display = text ? "flex" : "none";
+        }
+        function waitFor(check, timeout) {
+          return new Promise(function (resolve) {
+            var start = Date.now();
+            (function tick() {
+              var result = check();
+              if (result) return resolve(result);
+              if (Date.now() - start > timeout) return resolve(null);
+              setTimeout(tick, 120);
+            })();
+          });
+        }
+        function quickDelete(entryHash, title) {
+          if (deleting) return;
+          deleting = true;
+          var listHash = location.hash;
+          var nativeConfirm = window.confirm;
+          // Le conferme di Decap ("sei sicuro?") sono già state date con il
+          // nostro dialogo: durante l'operazione si accettano in automatico.
+          window.confirm = function () { return true; };
+          setDeleteOverlay("Eliminazione di \u201c" + title + "\u201d in corso\u2026");
+          function finish(ok) {
+            window.confirm = nativeConfirm;
+            deleting = false;
+            setDeleteOverlay("");
+            if (!ok) {
+              if (location.hash !== listHash) location.hash = listHash;
+              showNotice("Eliminazione non riuscita.", "\u201c" + title + "\u201d non è stato eliminato. Riprova, oppure aprilo ed eliminalo dal suo editor.");
+            }
+          }
+          location.hash = entryHash;
+          waitFor(function () {
+            if (!document.querySelector(".ng-sec")) return null;
+            return Array.prototype.find.call(document.querySelectorAll('[class*="ToolbarContainer"] button'), function (b) {
+              return /delete/i.test(b.textContent) && !b.disabled;
+            });
+          }, 20000).then(function (btn) {
+            if (!btn) return finish(false);
+            btn.click();
+            // Fatto quando Decap torna all'elenco della raccolta.
+            return waitFor(function () { return !/\/entries\//.test(location.hash); }, 20000).then(function (back) {
+              finish(!!back);
+            });
+          });
+        }
+        function addDeleteButtons() {
+          if (deleting) return;
+          Array.prototype.forEach.call(document.querySelectorAll('[class*="CardsGrid"] a[href*="/entries/"]'), function (link) {
+            var card = link.parentElement;
+            if (!card || card.querySelector(".ng-del")) return;
+            card.classList.add("ng-has-del");
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "ng-del";
+            btn.title = "Elimina";
+            btn.setAttribute("aria-label", "Elimina");
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+            btn.addEventListener("click", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              var title = (link.querySelector("h2") || link).textContent.trim();
+              var hash = link.getAttribute("href");
+              if (window.confirm("Eliminare definitivamente \u201c" + title + "\u201d?\n\nL'operazione non si può annullare.")) {
+                quickDelete(hash.slice(hash.indexOf("#")), title);
+              }
+            });
+            card.appendChild(btn);
+          });
+        }
+
         new MutationObserver(function () {
+          addDeleteButtons();
           hideUnsafeMenuItems();
+          watchBlankEditor();
           watchLoadErrors();
           resetRetries();
         }).observe(document.body, { subtree: true, childList: true });
