@@ -83,16 +83,23 @@ bisogno di login.
 produzione il pannello si collega a GitHub per autenticare lo staff e fare
 commit veri sul repository. Serve:
 
-1. Registrare una [OAuth App su GitHub](https://github.com/settings/developers)
-   per il repository del sito.
-2. Ospitare il piccolo servizio di login che Decap richiede (Decap fornisce
-   un provider OAuth pronto, deployabile in pochi minuti su Vercel: vedi la
-   [guida ufficiale "Backends → GitHub"](https://decapcms.org/docs/github-backend/)).
-3. Inserire l'URL di quel servizio in `public/admin/config.yml`
-   (`base_url`/`auth_endpoint`) e rimuovere `local_backend: true`.
-4. Invitare lo staff come collaboratori del repository GitHub (o con accesso
-   limitato in sola scrittura sui contenuti, a seconda di come si configura
-   l'OAuth App).
+Il repository è `github.com/nettunogold/nettunogold_website` (organizzazione
+del club) e il sito è pensato per Netlify:
+
+1. Registrare una OAuth App **nell'organizzazione** `nettunogold` (Settings →
+   Developer settings → OAuth Apps) con callback
+   `https://api.netlify.com/auth/done`.
+2. Inserire Client ID e secret su Netlify (Project configuration → Access &
+   security → OAuth → Install provider → GitHub).
+3. `public/admin/config.yml` è già pronto (`backend: github`,
+   `repo: nettunogold/nettunogold_website`, branch `main`); `local_backend:
+   true` può restare, vale solo in locale.
+4. Invitare lo staff come collaboratori del repository GitHub.
+5. Pulsante **Pubblica sul sito**: i salvataggi dal pannello fanno commit con
+   `[skip netlify]` (nessun deploy). Il pulsante nel pannello
+   (`/api/admin/pubblica`, logica in `src/lib/publish.ts`) mostra le modifiche
+   in attesa e avvia un solo deploy tramite un build hook Netlify, da
+   impostare nella variabile d'ambiente `NETLIFY_BUILD_HOOK_URL`.
 
 Questo passaggio richiede un account GitHub e la registrazione dell'app: va
 fatto da chi amministra il repository, non è automatizzabile dal codice.

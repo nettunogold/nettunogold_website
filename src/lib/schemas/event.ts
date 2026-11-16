@@ -3,7 +3,12 @@ import { slugify, dateSlugSuffix } from "@/lib/slug";
 import { dayFieldSchema, monthFieldSchema, yearFieldSchema, isValidCalendarDate } from "@/lib/schemas/date-parts";
 import { optionalNumber } from "@/lib/schemas/optional-number";
 
-export const DEFAULT_EVENT_IMAGE = "/eventi/placeholder-torneo.svg";
+// Fuori dalla cartella delle immagini caricate (public/eventi): così dal
+// pannello non si può eliminare per errore.
+export const DEFAULT_EVENT_IMAGE = "/images/placeholder-torneo.svg";
+// Percorso usato prima dello spostamento: i contenuti che lo contengono
+// ancora vengono reindirizzati qui.
+export const LEGACY_PLACEHOLDER = "/eventi/placeholder-torneo.svg";
 
 const torneoGroupSchema = z
   .object({
@@ -79,6 +84,7 @@ const eventShape = z.object({
   images: z
     .array(z.string())
     .default([])
+    .transform((list) => list.map((src) => (src === LEGACY_PLACEHOLDER ? DEFAULT_EVENT_IMAGE : src)))
     .transform((list) => (list.length > 0 ? list : [DEFAULT_EVENT_IMAGE])),
 });
 

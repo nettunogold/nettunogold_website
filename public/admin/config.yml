@@ -5,12 +5,8 @@
 # Ogni collection legge/scrive i file .json in una cartella di content/,
 # la stessa che legge il sito (src/lib/data/*.ts + src/lib/content-loader.ts).
 #
-# ATTIVAZIONE IN PRODUZIONE (passo esterno, da fare una volta sola):
-# il backend "github" richiede un'app OAuth registrata su GitHub e un
-# piccolo servizio "proxy" che gestisce il login (Decap fornisce un
-# provider gratuito ospitabile su Vercel/Netlify in un minuto). Vedi
-# la sezione "CMS" del README.md per il collegamento alla guida ufficiale
-# e i valori esatti da inserire qui sotto (base_url, auth_endpoint).
+# PRODUZIONE: login con GitHub tramite il provider OAuth di Netlify (vedi
+# documentazione/pubblicazione-sito-passo-passo.md, Fase 3, e il README).
 #
 # SVILUPPO LOCALE: lancia "npx decap-server" in un terminale e "npm run dev"
 # in un altro; con local_backend: true qui sotto, il pannello scrive
@@ -21,8 +17,17 @@ local_backend: true
 
 backend:
   name: github
-  repo: YoungBrama/nettunogold_website
+  repo: nettunogold/nettunogold_website
   branch: main
+  # "[skip netlify]": i salvataggi dal pannello NON ripubblicano il sito (e
+  # non consumano crediti Netlify). Le modifiche vanno online tutte insieme,
+  # con un solo deploy, dal pulsante "Pubblica sul sito" nel pannello.
+  commit_messages:
+    create: "Nuovo in {{collection}}: “{{slug}}” [skip netlify]"
+    update: "Modifica in {{collection}}: “{{slug}}” [skip netlify]"
+    delete: "Eliminato da {{collection}}: “{{slug}}” [skip netlify]"
+    uploadMedia: "Immagine caricata: “{{path}}” [skip netlify]"
+    deleteMedia: "Immagine eliminata: “{{path}}” [skip netlify]"
 
 publish_mode: simple
 media_folder: "public/eventi"

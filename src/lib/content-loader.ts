@@ -9,6 +9,9 @@ import path from "node:path";
 // pannello di amministrazione (CMS) legge e scrive i contenuti.
 export function loadRawContent(folder: string): unknown[] {
   const dir = path.join(process.cwd(), "content", folder);
+  // Cartella assente (es. tutti i contenuti eliminati: git non conserva le
+  // cartelle vuote) = raccolta vuota, non un errore di build.
+  if (!fs.existsSync(dir)) return [];
   const files = fs.readdirSync(dir).filter((file) => file.endsWith(".json"));
 
   return files.map((file) => {

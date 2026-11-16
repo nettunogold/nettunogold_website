@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Commit pubblicato in questa build (Netlify imposta COMMIT_REF): serve al
+  // pulsante "Pubblica sul sito" del pannello per sapere cosa è già online.
+  // In locale resta vuoto e il pulsante mostra solo un avviso.
+  env: {
+    NG_DEPLOYED_COMMIT: process.env.COMMIT_REF ?? "",
+  },
   // I contenuti (content/*.json) vengono letti da disco anche quando una
   // pagina viene rigenerata sul server (revalidate): vanno inclusi nei file
   // del deploy.

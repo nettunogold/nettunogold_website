@@ -3,7 +3,9 @@ import { slugify } from "@/lib/slug";
 import { dayFieldSchema, monthFieldSchema, yearFieldSchema, isValidCalendarDate, dateFromParts } from "@/lib/schemas/date-parts";
 import { optionalNumber } from "@/lib/schemas/optional-number";
 
-export const DEFAULT_SERIES_IMAGE = "/eventi/placeholder-torneo.svg";
+import { LEGACY_PLACEHOLDER } from "@/lib/schemas/event";
+
+export const DEFAULT_SERIES_IMAGE = "/images/placeholder-torneo.svg";
 
 // Una Serie rappresenta un festival/circuito multiday (es. "PGS Spring Edition",
 // "The Gladiator"): raccoglie più tornei/flight (vedi campo "seriesSlug" e
@@ -57,6 +59,7 @@ const seriesShape = z.object({
   images: z
     .array(z.string())
     .default([])
+    .transform((list) => list.map((src) => (src === LEGACY_PLACEHOLDER ? DEFAULT_SERIES_IMAGE : src)))
     .transform((list) => (list.length > 0 ? list : [DEFAULT_SERIES_IMAGE])),
 
   // Facoltativa, come per i tornei singoli: vuota = nessuna descrizione.

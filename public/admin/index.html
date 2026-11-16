@@ -692,6 +692,92 @@
         font: 600 16px/1.4 system-ui, sans-serif;
         letter-spacing: 0.02em;
       }
+      /* Pulsante "Pubblica sul sito" (colonna a sinistra dell'elenco) */
+      .ng-pub {
+        margin: 16px 12px 12px;
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(201, 162, 39, 0.28);
+        background: linear-gradient(180deg, rgba(201, 162, 39, 0.09), rgba(201, 162, 39, 0.02));
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        color: var(--ng-text);
+        font: 13px/1.45 system-ui, sans-serif;
+        /* nomi di file ed errori lunghi vanno a capo dentro il riquadro */
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .ng-pub__title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ng-gold-light);
+      }
+      .ng-pub__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ng-muted); flex-shrink: 0; }
+      .ng-pub__dot--ok { background: #4caf7a; box-shadow: 0 0 0 3px rgba(76, 175, 122, 0.18); }
+      .ng-pub__dot--wait { background: var(--ng-gold); box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2); }
+      .ng-pub__dot--busy { background: var(--ng-gold); animation: ng-pulse 1.2s ease-in-out infinite; }
+      @keyframes ng-pulse { 50% { opacity: 0.3; } }
+      .ng-pub__status { font-weight: 600; }
+      .ng-pub__hint { color: var(--ng-muted); font-size: 12px; }
+      .ng-pub__list {
+        margin: 0;
+        padding: 8px 10px;
+        list-style: none;
+        max-height: 170px;
+        overflow: auto;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.25);
+        font-size: 12px;
+        color: var(--ng-text);
+      }
+      .ng-pub__list li { padding: 3px 0; overflow-wrap: anywhere; }
+      .ng-pub__list li + li { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+      .ng-pub__btn {
+        padding: 10px 12px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--ng-gold-grad);
+        color: #17130a;
+        font: 700 13px/1 system-ui, sans-serif;
+        cursor: pointer;
+        transition: filter 0.15s, opacity 0.15s;
+      }
+      .ng-pub__btn:hover { filter: brightness(1.08); }
+      .ng-pub__btn:disabled { opacity: 0.4; cursor: default; filter: none; }
+      /* Bottone "Salva" dell'editor (al posto di Publish, che resta nascosto) */
+      .ng-hidden-publish {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      .ng-save {
+        height: 36px;
+        padding: 0 26px;
+        margin-right: 10px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--ng-gold-grad);
+        color: #17130a;
+        font: 700 14px/1 system-ui, sans-serif;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: filter 0.15s, opacity 0.15s;
+      }
+      .ng-save:hover { filter: brightness(1.08); }
+      .ng-save:disabled { opacity: 0.45; cursor: default; filter: none; }
+      .ng-pub__link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--ng-gold-light); font-size: 12px; cursor: pointer; text-decoration: underline; }
     </style>
   </head>
   <body>
@@ -710,7 +796,7 @@
       // oggetti, images come lista, description come testo): lo schema Zod del
       // sito (src/lib/schemas/event.ts) non cambia formato.
       (function () {
-        var DEFAULT_IMAGE = "/eventi/placeholder-torneo.svg";
+        var DEFAULT_IMAGE = "/images/placeholder-torneo.svg";
         var MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
         function plain(value) {
@@ -1057,7 +1143,7 @@
             var list = plain(this.props.value);
             if (!Array.isArray(list)) list = typeof list === "string" ? [list] : [];
             var defaultImage = this.props.field.get("default_image") || DEFAULT_IMAGE;
-            return list.filter(function (src) { return src && src !== defaultImage; });
+            return list.filter(function (src) { return src && src !== defaultImage && src !== "/eventi/placeholder-torneo.svg"; });
           },
           // Per le immagini appena caricate ma non ancora pubblicate il file
           // non esiste ancora su disco: Decap ne tiene una copia in memoria e
@@ -1622,7 +1708,7 @@
           var to = /\/entries\/|\/new(\?|$)/.test(lastHash) ? lastHash : null;
           if (from && to && from !== to) {
             console.warn("[pannello] cambio contenuto senza passare dall'elenco: ricarico i dati");
-            location.reload();
+            ngReload();
           }
         });
 
@@ -1631,6 +1717,13 @@
         //    tema scuro sembra nera). Si mostra invece un avviso chiaro, con
         //    un nuovo tentativo automatico e il bottone "Riprova".
         var IS_LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+        // Ricariche fatte dal pannello stesso: non devono far comparire
+        // l'avviso "modifiche non pubblicate".
+        var ngReloading = false;
+        function ngReload() {
+          ngReloading = true;
+          location.reload();
+        }
         var notice = null;
         function showNotice(title, text) {
           if (!notice) {
@@ -1648,7 +1741,7 @@
           var btn = document.createElement("button");
           btn.type = "button";
           btn.textContent = "Riprova";
-          btn.onclick = function () { location.reload(); };
+          btn.onclick = function () { ngReload(); };
           notice.appendChild(strong);
           notice.appendChild(span);
           notice.appendChild(btn);
@@ -1701,7 +1794,7 @@
               retryScheduled = true;
               try { sessionStorage.setItem(key, String(tries + 1)); } catch (e) {}
               console.warn("[pannello] contenuto non caricato, nuovo tentativo automatico");
-              setTimeout(function () { location.reload(); }, 1200);
+              setTimeout(function () { ngReload(); }, 1200);
               return;
             }
           }
@@ -1731,7 +1824,7 @@
             if (tries < 1) {
               try { sessionStorage.setItem(key, String(tries + 1)); } catch (e) {}
               console.warn("[pannello] form non comparso dopo 6 secondi: ricarico la pagina");
-              location.reload();
+              ngReload();
             } else {
               showNotice("Il contenuto non si è aperto.", "Premi Riprova. Se succede ancora, controlla che \"npm run cms\" e \"npm run dev\" siano avviati.");
             }
@@ -1786,6 +1879,7 @@
             window.confirm = nativeConfirm;
             deleting = false;
             setDeleteOverlay("");
+            if (ok) afterSave();
             if (!ok) {
               if (location.hash !== listHash) location.hash = listHash;
               showNotice("Eliminazione non riuscita.", "\u201c" + title + "\u201d non è stato eliminato. Riprova, oppure aprilo ed eliminalo dal suo editor.");
@@ -1831,7 +1925,408 @@
           });
         }
 
+        // ---------------- SALVA E PUBBLICA SUL SITO ----------------
+        // Nell'editor il bottone "Salva" sostituisce "Publish": salva soltanto
+        // (online il commit ha "[skip netlify]", quindi nessun deploy). Il
+        // riquadro "Sito online" nella colonna di sinistra elenca le modifiche
+        // salvate e "Pubblica sul sito" le porta online tutte insieme:
+        //  - online: un solo deploy Netlify (build hook);
+        //  - in locale: un solo commit con tutti i contenuti, inviato a GitHub.
+        // Chiudendo il pannello con modifiche non pubblicate compare un avviso.
+        var PUB_API = "/api/admin/pubblica";
+        var PUB_KEY = "ng-publishing";
+        var pubEl = null;
+        var pubLast = 0;
+        var pubBusy = false;
+        var pubPoll = null;
+        // "idle" | "publishing": durante una pubblicazione nessun altro
+        // aggiornamento può sovrascrivere lo stato mostrato.
+        var pubPhase = "idle";
+        var pubPending = 0; // modifiche salvate e non pubblicate (ultimo controllo)
+        var pubDirty = false; // salvataggio fatto dopo l'ultimo controllo
+
+        function decapUser() {
+          try {
+            var u = JSON.parse(localStorage.getItem("decap-cms-user") || localStorage.getItem("netlify-cms-user") || "null");
+            if (u && !u.token && u.access_token) u.token = u.access_token;
+            return u && u.token ? u : null;
+          } catch (e) { return null; }
+        }
+        function readPublishing() {
+          try {
+            var p = JSON.parse(localStorage.getItem(PUB_KEY) || "null");
+            if (p && Date.now() - p.at < 12 * 60 * 1000) return p;
+          } catch (e) {}
+          return null;
+        }
+        function writePublishing(p) {
+          try { p ? localStorage.setItem(PUB_KEY, JSON.stringify(p)) : localStorage.removeItem(PUB_KEY); } catch (e) {}
+        }
+        function el(tag, cls, text) {
+          var e = document.createElement(tag);
+          if (cls) e.className = cls;
+          if (text != null) e.textContent = text;
+          return e;
+        }
+        function renderPub(opts) {
+          if (!pubEl) pubEl = el("div", "ng-pub");
+          pubEl.innerHTML = "";
+          var title = el("div", "ng-pub__title");
+          title.appendChild(el("span", "ng-pub__dot" + (opts.dot ? " ng-pub__dot--" + opts.dot : "")));
+          title.appendChild(el("span", null, "Sito online"));
+          pubEl.appendChild(title);
+          if (opts.status) pubEl.appendChild(el("div", "ng-pub__status", opts.status));
+          if (opts.hint) pubEl.appendChild(el("div", "ng-pub__hint", opts.hint));
+          if (opts.items && opts.items.length) {
+            var ul = el("ul", "ng-pub__list");
+            opts.items.slice(0, 12).forEach(function (it) { ul.appendChild(el("li", null, it)); });
+            if (opts.items.length > 12) ul.appendChild(el("li", "ng-pub__hint", "…e altre " + (opts.items.length - 12)));
+            pubEl.appendChild(ul);
+          }
+          var btn = el("button", "ng-pub__btn", (opts.button && opts.button.label) || "Pubblica sul sito");
+          btn.type = "button";
+          btn.disabled = !opts.button || !!opts.button.disabled;
+          if (opts.button && opts.button.onClick) btn.onclick = opts.button.onClick;
+          pubEl.appendChild(btn);
+          if (opts.note) pubEl.appendChild(el("div", "ng-pub__hint", opts.note));
+          if (opts.retry) {
+            var r = el("button", "ng-pub__link", "Aggiorna");
+            r.type = "button";
+            r.onclick = function () { refreshPub(true); };
+            pubEl.appendChild(r);
+          }
+        }
+        function callPub(method, body) {
+          var user = decapUser();
+          var headers = { "Content-Type": "application/json", "X-NG-Panel": "1" };
+          if (user) headers.Authorization = "Bearer " + user.token;
+          return fetch(PUB_API, {
+            method: method,
+            headers: headers,
+            body: body ? JSON.stringify(body) : undefined,
+            cache: "no-store",
+          }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (data) {
+              if (!r.ok) throw new Error(data.error || "Errore " + r.status);
+              return data;
+            });
+          });
+        }
+        function timeNow() {
+          var d = new Date();
+          return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+        }
+        function pendingText(n) {
+          return n === 1 ? "1 modifica da pubblicare" : n + " modifiche da pubblicare";
+        }
+
+        function refreshPub(force) {
+          if (pubBusy || pubPhase !== "idle") return;
+          if (!force && Date.now() - pubLast < 5000) return;
+          pubLast = Date.now();
+          var publishing = readPublishing();
+          if (publishing && !IS_LOCAL) return watchPublishing(publishing);
+          pubBusy = true;
+          callPub("GET").then(function (data) {
+            pubBusy = false;
+            if (pubPhase !== "idle") return;
+            pubDirty = false;
+            if (data.mode === "local") renderLocal(data);
+            else renderOnline(data);
+          }).catch(function (err) {
+            pubBusy = false;
+            if (pubPhase !== "idle") return;
+            renderPub({ dot: "wait", status: "Stato non disponibile", hint: err.message, retry: true });
+          });
+        }
+
+        function renderLocal(data) {
+          if (!data.available) {
+            pubPending = 0;
+            return renderPub({ dot: "wait", status: "Pubblicazione non disponibile", hint: "Avvia il sito con \"npm run dev\" e riapri il pannello.", retry: true });
+          }
+          var n = data.pending.length;
+          var branchNote = data.branch && data.branch !== "main"
+            ? "Branch attuale: " + data.branch + ". Il sito online si aggiorna solo dal branch main."
+            : null;
+          pubPending = n + (data.unpushed || 0);
+          if (n === 0 && !data.unpushed) {
+            return renderPub({
+              dot: "ok",
+              status: "Tutto pubblicato",
+              hint: "Non ci sono modifiche salvate da pubblicare. Nota: su localhost:3000 vedi subito ogni salvataggio (è l'anteprima sul tuo computer); il sito online cambia solo quando pubblichi.",
+              button: { disabled: true },
+              note: branchNote,
+              retry: true,
+            });
+          }
+          if (n === 0) {
+            return renderPub({
+              dot: "wait",
+              status: "Da inviare a GitHub",
+              hint: data.unpushed === 1 ? "1 pubblicazione non è ancora arrivata su GitHub." : data.unpushed + " pubblicazioni non sono ancora arrivate su GitHub.",
+              button: { label: "Invia a GitHub", onClick: function () { publishNow(0); } },
+              note: branchNote,
+              retry: true,
+            });
+          }
+          renderPub({
+            dot: "wait",
+            status: pendingText(n),
+            hint: "Salvate ma non ancora pubblicate. Su localhost:3000 le vedi già (è l'anteprima sul tuo computer); il sito online cambia solo quando pubblichi, tutto insieme.",
+            items: data.pending.map(function (p) { return p.message; }),
+            button: { onClick: function () { publishNow(n); } },
+            note: branchNote,
+            retry: true,
+          });
+        }
+
+        function renderOnline(data) {
+          var n = data.pending.length;
+          pubPending = n;
+          if (!data.configured) {
+            return renderPub({ dot: "wait", status: "Pulsante da attivare", hint: "Manca il build hook su Netlify (variabile NETLIFY_BUILD_HOOK_URL): vedi la guida di pubblicazione, Fase 3.4.", items: data.pending.map(function (p) { return p.message; }), retry: true });
+          }
+          if (n === 0) {
+            return renderPub({
+              dot: "ok",
+              status: "Tutto pubblicato",
+              hint: "Il sito online è aggiornato. Le modifiche che salvi compariranno qui, in attesa di pubblicazione.",
+              button: { disabled: true },
+              retry: true,
+            });
+          }
+          renderPub({
+            dot: "wait",
+            status: pendingText(n),
+            hint: "Salvate ma non ancora visibili sul sito. Quando hai finito di inserire tutto, pubblica: conta come un solo aggiornamento.",
+            items: data.pending.map(function (p) { return p.message; }),
+            button: { onClick: function () { publishNow(n, data.deployed); } },
+            retry: true,
+          });
+        }
+
+        function publishNow(n, deployed) {
+          var text = n === 0
+            ? "Inviare a GitHub le pubblicazioni in sospeso?"
+            : (n === 1 ? "Pubblicare 1 modifica sul sito?" : "Pubblicare " + n + " modifiche sul sito?") + "\n\nVa online tutto insieme, con un solo aggiornamento.";
+          if (!window.confirm(text)) return;
+          var user = decapUser();
+          pubPhase = "publishing";
+          renderPub({ dot: "busy", status: "Pubblicazione in corso…", button: { label: "Pubblicazione in corso", disabled: true } });
+          callPub("POST", { who: user && (user.login || user.name) }).then(function (res) {
+            if (IS_LOCAL) {
+              pubPhase = "idle";
+              pubLast = Date.now() + 25000; // il messaggio resta visibile per un po'
+              if (!res.pushed) {
+                pubPending = Math.max(1, pubPending);
+                return renderPub({
+                  dot: "wait",
+                  status: "Invio a GitHub non riuscito",
+                  hint: (res.committed ? "Le modifiche sono pronte in un commit locale, ma " : "") + "l'invio a GitHub non è riuscito: " + (res.error || "errore sconosciuto") + ". Controlla la connessione e premi Aggiorna, poi riprova.",
+                  retry: true,
+                });
+              }
+              pubPending = 0;
+              return renderPub({
+                dot: "ok",
+                status: "Pubblicato alle " + timeNow(),
+                hint: (res.committed ? (res.committed === 1 ? "1 modifica inviata" : res.committed + " modifiche inviate") + " a GitHub in un solo commit" : "Inviato a GitHub") +
+                  (res.branch === "main" ? ". Netlify aggiorna il sito in 2–4 minuti." : " (branch " + res.branch + ")."),
+                button: { disabled: true },
+                retry: true,
+              });
+            }
+            pubPending = 0;
+            var p = { at: Date.now(), deployed: deployed, n: n };
+            writePublishing(p);
+            watchPublishing(p);
+          }).catch(function (err) {
+            pubPhase = "idle";
+            renderPub({ dot: "wait", status: "Pubblicazione non avviata", hint: err.message, retry: true });
+          });
+        }
+
+        // Online, dopo l'avvio: controllo ogni 15 secondi finché il sito non
+        // risulta aggiornato (cambia il commit pubblicato).
+        function watchPublishing(p) {
+          pubPhase = "publishing";
+          renderPub({
+            dot: "busy",
+            status: "Pubblicazione in corso…",
+            hint: "Di solito servono 2–4 minuti. Puoi continuare a lavorare: le modifiche salvate da ora andranno nella prossima pubblicazione.",
+            button: { label: "Pubblicazione in corso", disabled: true },
+          });
+          if (pubPoll) return;
+          pubPoll = setInterval(function () {
+            callPub("GET").then(function (data) {
+              if (data.deployed && data.deployed !== p.deployed) {
+                clearInterval(pubPoll);
+                pubPoll = null;
+                writePublishing(null);
+                pubPhase = "idle";
+                pubPending = data.pending.length;
+                renderPub({
+                  dot: pubPending ? "wait" : "ok",
+                  status: "Pubblicato alle " + timeNow(),
+                  hint: pubPending ? pendingText(pubPending) + ", salvate durante la pubblicazione." : "Il sito online è aggiornato.",
+                  button: pubPending ? { onClick: function () { publishNow(pubPending, data.deployed); } } : { disabled: true },
+                  retry: true,
+                });
+                pubLast = Date.now() + 25000;
+              } else if (Date.now() - p.at > 12 * 60 * 1000) {
+                clearInterval(pubPoll);
+                pubPoll = null;
+                writePublishing(null);
+                pubPhase = "idle";
+                renderPub({ dot: "wait", status: "La pubblicazione sta richiedendo più del previsto", hint: "Controlla su Netlify, nella sezione Deploys, oppure premi Aggiorna tra qualche minuto.", retry: true });
+              }
+            }).catch(function () {});
+          }, 15000);
+        }
+
+        function ensurePublishCard() {
+          if (/\/entries\/|\/new(\?|$)/.test(location.hash)) return;
+          var aside = document.querySelector('aside[class*="SidebarContainer"]') || document.querySelector('[class*="SidebarContainer"]');
+          if (!aside) return;
+          if (!pubEl) {
+            renderPub({ status: "Controllo in corso…", button: { disabled: true } });
+          }
+          if (pubEl.parentNode !== aside) {
+            aside.appendChild(pubEl);
+            refreshPub(false);
+          }
+        }
+
+        // Bottone "Salva" al posto di "Publish" (con il suo menu): un clic e il
+        // contenuto è salvato. Il bottone originale resta nella pagina, nascosto,
+        // e viene usato dietro le quinte.
+        function originalPublishButton() {
+          return document.querySelector('[class*="ToolbarContainer"] [class*="PublishButton"]');
+        }
+        // Dopo il salvataggio Decap mostra "Published" (con un suo menu) al
+        // posto di "Publish": va nascosto anche quello.
+        function publishControl() {
+          return originalPublishButton() || document.querySelector('[class*="ToolbarContainer"] [class*="PublishedToolbarButton"]');
+        }
+        function hasUnsavedChanges() {
+          return !!document.querySelector('[class*="ToolbarContainer"] [class*="BackStatusChanged"]');
+        }
+        function ensureSaveButton() {
+          var orig = publishControl();
+          if (!orig) return;
+          var wrap = orig.closest('[class*="ToolbarDropdown"]') || orig.parentElement;
+          if (!wrap.classList.contains("ng-hidden-publish")) wrap.classList.add("ng-hidden-publish");
+          // Un solo bottone, sempre nello stesso punto: "Publish" e "Published"
+          // stanno in contenitori diversi, quindi si usa la sezione che li
+          // contiene entrambi.
+          var box = orig.closest('[class*="ToolbarSubSectionFirst"]') || wrap.parentElement;
+          var all = document.querySelectorAll('[class*="ToolbarContainer"] .ng-save');
+          var btn = all[0] || null;
+          for (var i = 1; i < all.length; i++) all[i].remove();
+          if (!btn) {
+            btn = el("button", "ng-save", "Salva");
+            btn.type = "button";
+            btn.onclick = saveEntry;
+          }
+          if (btn.parentElement !== box) box.insertBefore(btn, box.firstChild);
+          var saving = btn.getAttribute("data-saving") === "1";
+          var changed = hasUnsavedChanges() && !!originalPublishButton();
+          var isNew = /\/new(\?|$)/.test(location.hash);
+          var label = saving ? "Salvataggio…" : changed || isNew ? "Salva" : "Salvato";
+          if (btn.textContent !== label) btn.textContent = label;
+          var disabled = saving || !changed;
+          if (btn.disabled !== disabled) btn.disabled = disabled;
+        }
+        function findPublishNow() {
+          return Array.prototype.find.call(document.querySelectorAll('[class*="ToolbarContainer"] [class*="StyledMenuItem"]'), function (it) {
+            return /publish now|pubblica ora/i.test(it.textContent);
+          }) || null;
+        }
+        function menuOpen(orig) {
+          return orig && orig.getAttribute("aria-expanded") === "true" && !!findPublishNow();
+        }
+        // Apre il menu nascosto di Decap e restituisce la voce "Publish now".
+        // Si apre DOPO che il clic dell'utente su "Salva" è terminato: con un
+        // clic vero del mouse, aprirlo durante lo stesso clic lo fa richiudere
+        // subito (il menu lo considera un "clic fuori"). Fino a 3 tentativi,
+        // l'ultimo da tastiera (Invio), come farebbe un utente.
+        function openPublishMenu(attempt) {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              var orig = originalPublishButton();
+              if (!orig) return resolve(null);
+              if (!menuOpen(orig)) {
+                if (attempt < 2) orig.click();
+                else {
+                  orig.focus();
+                  orig.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true }));
+                }
+              }
+              waitFor(function () { return menuOpen(originalPublishButton()) ? findPublishNow() : null; }, 1200).then(function (item) {
+                if (item || attempt >= 2) return resolve(item);
+                openPublishMenu(attempt + 1).then(resolve);
+              });
+            }, attempt === 0 ? 80 : 200);
+          });
+        }
+        function saveEntry(e) {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          var btn = document.querySelector(".ng-save");
+          if (!originalPublishButton() || !hasUnsavedChanges()) return;
+          if (btn) btn.setAttribute("data-saving", "1");
+          ensureSaveButton();
+          openPublishMenu(0).then(function (item) {
+            if (item) item.click();
+            else showNotice("Salvataggio non riuscito.", "Il pannello non ha risposto. Premi di nuovo Salva; se non funziona, premi Riprova (perderai le modifiche non salvate).");
+            // Fine: salvato (sparisce "Unsaved Changes"), oppure Decap ha
+            // rifiutato il salvataggio (campo obbligatorio mancante: niente
+            // "Publishing..." in corso) e il bottone torna subito "Salva".
+            var t0 = Date.now();
+            return waitFor(function () {
+              if (!hasUnsavedChanges()) return true;
+              var o = originalPublishButton();
+              return Date.now() - t0 > 1500 && !(o && /publishing|pubblicazione/i.test(o.textContent));
+            }, 30000);
+          }).then(function () {
+            var b = document.querySelector(".ng-save");
+            if (b) b.removeAttribute("data-saving");
+            ensureSaveButton();
+          });
+        }
+
+        // Ogni salvataggio aggiorna il conteggio delle modifiche da pubblicare.
+        function afterSave() {
+          pubDirty = true;
+          setTimeout(function () { refreshPub(true); }, 900);
+        }
+        CMS.registerEventListener({ name: "postSave", handler: afterSave });
+        CMS.registerEventListener({ name: "postPublish", handler: afterSave });
+
+        // Avviso alla chiusura con modifiche salvate ma non pubblicate. Il testo
+        // del messaggio lo decide il browser (non è personalizzabile).
+        window.addEventListener("beforeunload", function (e) {
+          if (ngReloading || deleting) return;
+          if (pubPhase === "idle" && (pubPending > 0 || pubDirty)) {
+            e.preventDefault();
+            e.returnValue = "Ci sono modifiche salvate ma non pubblicate sul sito.";
+            return e.returnValue;
+          }
+        });
+
+        // Aggiornamento dello stato: quando il riquadro compare, quando si torna
+        // a un elenco e quando si torna sulla finestra.
+        window.addEventListener("hashchange", function () {
+          setTimeout(function () {
+            ensurePublishCard();
+            if (!/\/entries\/|\/new(\?|$)/.test(location.hash)) refreshPub(true);
+          }, 300);
+        });
+        window.addEventListener("focus", function () { refreshPub(false); });
+
         new MutationObserver(function () {
+          ensurePublishCard();
+          ensureSaveButton();
           addDeleteButtons();
           hideUnsafeMenuItems();
           watchBlankEditor();
