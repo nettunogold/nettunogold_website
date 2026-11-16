@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { businessInfo } from "@/lib/site-config";
+import { LocationMap } from "@/components/map/LocationMap";
 
 const address = `${businessInfo.address.street}, ${businessInfo.address.postalCode} ${businessInfo.address.city} (${businessInfo.address.region})`;
 
@@ -22,13 +23,7 @@ export function ContattiMappa() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
           <Reveal className="lg:col-span-3">
             <div className="card-static h-full overflow-hidden p-2">
-              <iframe
-                title="Mappa: posizione di Nettuno Gold"
-                src={businessInfo.mapEmbedSrc}
-                className="h-64 w-full rounded-[1.1rem] sm:h-80 grayscale-[0.4] contrast-[1.05] lg:h-full lg:min-h-[380px]"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+              <LocationMap className="h-72 w-full sm:h-96 lg:h-full lg:min-h-[400px]" />
             </div>
           </Reveal>
 

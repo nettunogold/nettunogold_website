@@ -5,6 +5,7 @@ import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/ui/Reveal";
 import { InstagramIcon, FacebookIcon } from "@/components/icons/SocialIcons";
 import { businessInfo } from "@/lib/site-config";
+import { LocationMap } from "@/components/map/LocationMap";
 
 export const metadata: Metadata = {
   title: "Contatti & Dove siamo",
@@ -37,13 +38,7 @@ export default function ContattiPage() {
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
             <Reveal className="lg:col-span-3">
               <div className="card-static h-full overflow-hidden p-2">
-                <iframe
-                  title="Mappa: posizione di Nettuno Gold"
-                  src={businessInfo.mapEmbedSrc}
-                  className="h-96 w-full rounded-[1.1rem] grayscale-[0.4] contrast-[1.05] lg:h-full lg:min-h-[520px]"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+                <LocationMap className="h-[26rem] w-full sm:h-[30rem] lg:h-full lg:min-h-[520px]" />
               </div>
             </Reveal>
 
