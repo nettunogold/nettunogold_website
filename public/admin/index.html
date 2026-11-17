@@ -1036,6 +1036,12 @@
               fields.forEach(function (nf) {
                 var s = String(text[nf.key]).replace(",", ".").trim();
                 if (s === "") return;
+                // Campo a testo (es. durata livelli "20/25"): un numero intero
+                // resta numero, il resto si salva com'è scritto.
+                if (nf.text) {
+                  data[nf.key] = /^\d+$/.test(s) ? parseInt(s, 10) : s.replace(/\s+/g, "").replace(/-/g, "/");
+                  return;
+                }
                 var n = nf.int ? parseInt(s, 10) : parseFloat(s);
                 data[nf.key] = isNaN(n) ? s : n;
               });
@@ -1047,6 +1053,10 @@
               if (requiredKey && (typeof d[requiredKey] !== "number" || d[requiredKey] < 0)) return invalid(requiredMessage);
               for (var i = 0; i < fields.length; i++) {
                 var f = fields[i];
+                if (f.text) {
+                  if (d[f.key] != null && !f.pattern.test(String(d[f.key]))) return invalid(f.message);
+                  continue;
+                }
                 if (d[f.key] != null && (typeof d[f.key] !== "number" || d[f.key] < 0)) {
                   return invalid(f.label + " deve essere un numero valido");
                 }
@@ -1068,7 +1078,8 @@
                       h("span", { className: "ng-field__label" }, f.label),
                       h("input", {
                         type: "text",
-                        inputMode: f.int ? "numeric" : "decimal",
+                        inputMode: f.text ? "text" : f.int ? "numeric" : "decimal",
+                        placeholder: f.placeholder || "",
                         value: self.state.text[f.key],
                         onChange: function (e) { self.change(f, e.target.value); },
                       })
@@ -1083,9 +1094,21 @@
         var DettagliControl = numberSection(
           [
             { key: "buyIn", label: "BUY-IN", int: false },
-            { key: "guaranteed", label: "GARANTITO", int: false },
             { key: "startingStack", label: "STACK", int: true },
-            { key: "levelDurationMinutes", label: "DURATA LIVELLI", int: true },
+            { key: "guaranteed", label: "GARANTITO", int: false },
+            // Premio garantito al primo classificato: compare solo nella
+            // pagina del torneo, sotto il garantito ("1.000 al primo").
+            { key: "firstPrize", label: "GTD PRIMO", int: false },
+            // Minuti per livello: anche più valori se cambiano con la
+            // struttura, es. "20/25".
+            {
+              key: "levelDurationMinutes",
+              label: "DURATA LIVELLI",
+              text: true,
+              placeholder: "es. 20 oppure 20/25",
+              pattern: /^\d+(\/\d+)*$/,
+              message: "DURATA LIVELLI: scrivi i minuti, es. 20 oppure 20/25",
+            },
           ],
           "buyIn",
           "Il buy-in è obbligatorio (numero in euro)"

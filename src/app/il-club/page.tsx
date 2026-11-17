@@ -5,7 +5,6 @@ import { PageHero } from "@/components/sections/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { PhotoBanner } from "@/components/ui/PhotoBanner";
-import { formatNumberIt } from "@/lib/utils";
 import { businessInfo } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -84,13 +83,7 @@ export default function IlClubPage() {
             priority
             src="/sala/sala-piena.jpg"
             alt="La sala di Nettuno Gold piena di giocatori durante un torneo"
-            eyebrow="La community"
             title="Quasi 2.000 soci, una sola passione"
-            stats={[
-              { value: `${formatNumberIt(businessInfo.stats.members)}+`, label: "Soci" },
-              { value: `${businessInfo.stats.tournamentsPerYear}`, label: "Tornei l'anno" },
-              { value: `Dal ${businessInfo.stats.since}`, label: "In attività" },
-            ]}
           />
 
           {/* Storia: linea del tempo */}

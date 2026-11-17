@@ -27,7 +27,7 @@ export function PhotoBanner({
       <figure
         className={cn(
           "group relative isolate overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_50px_100px_-50px_rgba(201,162,39,0.45)]",
-          "aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/9]",
+          "aspect-[4/3] sm:aspect-[2/1] lg:aspect-[3/1]",
           className
         )}
       >

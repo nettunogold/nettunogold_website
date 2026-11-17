@@ -1,21 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, Clock, Layers } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import type { Event } from "@/lib/schemas/event";
 import { cn, formatNumberIt } from "@/lib/utils";
-
-type Filter = "tutti" | "singoli" | "multi";
+import { EventSummary, PosterBackdrop } from "@/components/events/card-parts";
 
 const ease = [0.2, 0.8, 0.2, 1] as const;
 
-// Elenco dei tornei in programma in stile "lobby": filtri rapidi, gruppi per
-// mese e una riga per torneo con le informazioni chiave allineate in colonne.
+// Elenco dei tornei in programma in stile "lobby": gruppi per mese e una riga
+// per torneo con le informazioni chiave allineate in colonne.
 export function TorneiExplorer({
   events,
   seriesTitles = {},
@@ -23,29 +22,16 @@ export function TorneiExplorer({
   events: Event[];
   seriesTitles?: Record<string, string>;
 }) {
-  const [filter, setFilter] = useState<Filter>("tutti");
   const reduce = useReducedMotion();
 
-  const counts = useMemo(
-    () => ({
-      tutti: events.length,
-      singoli: events.filter((e) => !e.seriesSlug).length,
-      multi: events.filter((e) => e.seriesSlug).length,
-    }),
-    [events]
-  );
-
   const groups = useMemo(() => {
-    const visible = events.filter((e) =>
-      filter === "tutti" ? true : filter === "singoli" ? !e.seriesSlug : Boolean(e.seriesSlug)
-    );
     const map = new Map<string, Event[]>();
-    for (const event of visible) {
+    for (const event of events) {
       const key = event.date.slice(0, 7);
       map.set(key, [...(map.get(key) ?? []), event]);
     }
     return [...map.entries()];
-  }, [events, filter]);
+  }, [events]);
 
   if (events.length === 0) {
     return (
@@ -56,88 +42,37 @@ export function TorneiExplorer({
     );
   }
 
-  const tabs: { id: Filter; label: string }[] = [
-    { id: "tutti", label: "Tutti" },
-    { id: "singoli", label: "Singoli" },
-    { id: "multi", label: "Multi-day" },
-  ];
-  const showTabs = counts.singoli > 0 && counts.multi > 0;
-
   return (
-    <div className="flex flex-col gap-8">
-      {showTabs && (
-        <div className="glass flex w-fit items-center gap-1 rounded-full p-1" role="tablist" aria-label="Filtra i tornei">
-          {tabs.map((tab) => {
-            const active = filter === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setFilter(tab.id)}
-                className={cn(
-                  "relative rounded-full px-4 py-2 text-sm transition-colors duration-300",
-                  active ? "font-semibold text-foreground" : "text-muted hover:text-foreground/90"
-                )}
+    <div className="flex flex-col gap-10">
+      {groups.map(([month, list]) => (
+        <section key={month} className="flex flex-col gap-3">
+          <div className="flex items-center gap-4 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
+              {format(parseISO(`${month}-01`), "LLLL yyyy", { locale: it })}
+            </h3>
+            <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+            <span className="tabular text-xs text-muted">
+              {list.length} {list.length === 1 ? "torneo" : "tornei"}
+            </span>
+          </div>
+          <ul className="flex flex-col gap-2.5">
+            {list.map((event, i) => (
+              <motion.li
+                key={event.slug}
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.04, ease }}
               >
-                {active && (
-                  <motion.span
-                    layoutId="tornei-filter"
-                    className="absolute inset-0 rounded-full border border-gold/25 bg-gold/[0.12]"
-                    transition={{ type: "spring", stiffness: 380, damping: 34 }}
-                  />
-                )}
-                <span className="relative">
-                  {tab.label}
-                  <span className="tabular ml-1.5 text-xs text-muted">{counts[tab.id]}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={filter}
-          initial={reduce ? false : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduce ? undefined : { opacity: 0, y: -4 }}
-          transition={{ duration: 0.3, ease }}
-          className="flex flex-col gap-10"
-        >
-          {groups.map(([month, list]) => (
-            <section key={month} className="flex flex-col gap-3">
-              <div className="flex items-center gap-4 px-1">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
-                  {format(parseISO(`${month}-01`), "LLLL yyyy", { locale: it })}
-                </h3>
-                <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-                <span className="tabular text-xs text-muted">
-                  {list.length} {list.length === 1 ? "torneo" : "tornei"}
-                </span>
-              </div>
-              <ul className="flex flex-col gap-2.5">
-                {list.map((event, i) => (
-                  <motion.li
-                    key={event.slug}
-                    initial={reduce ? false : { opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-40px" }}
-                    transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.04, ease }}
-                  >
-                    <TorneoRow
-                      event={event}
-                      seriesTitle={event.seriesSlug ? (seriesTitles[event.seriesSlug] ?? event.seriesSlug) : undefined}
-                    />
-                  </motion.li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+                <TorneoRow
+                  event={event}
+                  seriesTitle={event.seriesSlug ? (seriesTitles[event.seriesSlug] ?? event.seriesSlug) : undefined}
+                />
+              </motion.li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }
@@ -161,12 +96,31 @@ function Stat({ label, value, gold = false }: { label: string; value: number | n
 }
 
 function TorneoRow({ event, seriesTitle }: { event: Event; seriesTitle?: string }) {
+  return (
+    <>
+      {/* Telefono: data in evidenza, titolo leggibile e dati su una striscia. */}
+      <Link href={`/eventi/${event.slug}`} className="card-soft group relative block overflow-hidden p-3.5 md:hidden">
+        <PosterBackdrop src={event.images[0]} />
+        <div className="relative">
+          <EventSummary
+            event={event}
+            seriesTitle={seriesTitle}
+            aside={<ChevronRight size={18} className="shrink-0 self-center text-muted" />}
+          />
+        </div>
+      </Link>
+      <TorneoRowWide event={event} seriesTitle={seriesTitle} />
+    </>
+  );
+}
+
+function TorneoRowWide({ event, seriesTitle }: { event: Event; seriesTitle?: string }) {
   const date = parseISO(event.date);
 
   return (
     <Link
       href={`/eventi/${event.slug}`}
-      className="card-soft group flex items-stretch gap-3 overflow-hidden p-2.5 sm:gap-5 sm:p-3"
+      className="card-soft group hidden items-stretch gap-5 overflow-hidden p-3 md:flex"
     >
       {/* Locandina */}
       <div className="relative w-16 shrink-0 overflow-hidden rounded-xl bg-white/[0.03] sm:w-20">

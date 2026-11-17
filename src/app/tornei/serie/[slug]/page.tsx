@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowUpRight, CalendarRange, Clock, Layers, Timer } from "lucide-react";
+import { ArrowRight, CalendarRange } from "lucide-react";
 import { getAllSeries, getSeriesBySlug } from "@/lib/data/series";
 import { getEventsBySeriesSlug } from "@/lib/data/events";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { DetailShell, DetailTitle, GuaranteedPanel, DescriptionCard } from "@/components/events/Detail";
-import { formatDateRangeIt, formatDayNumber, formatMonthFullIt, formatNumberIt } from "@/lib/utils";
+import { formatDateRangeIt, formatDateRangeShortIt } from "@/lib/utils";
+import { FlightCard } from "@/components/events/card-parts";
 
 // Le pagine sono generate in anticipo; questa impostazione le rigenera al
 // massimo ogni ora, così i tornei che diventano passati spariscono da soli
@@ -52,19 +52,30 @@ export default async function SeriePage({
 
   const flights = getEventsBySeriesSlug(series.slug);
 
+  // Tipo e date: su telefono sopra la locandina (date in forma breve, così
+  // stanno sulla stessa riga), da computer sopra il titolo.
+  const kicker = (short: boolean) => (
+    <div className="flex flex-wrap gap-2">
+      <Badge>Multi-day</Badge>
+      <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-foreground/90">
+        <CalendarRange size={15} className="text-gold" />
+        {short
+          ? formatDateRangeShortIt(series.startDate, series.endDate)
+          : formatDateRangeIt(series.startDate, series.endDate)}
+      </span>
+    </div>
+  );
+
   return (
-    <DetailShell backHref="/tornei" backLabel="Torna al calendario" images={series.images} imageAlt={`Locandina ${series.title}`}>
-      <DetailTitle
-        kicker={
-          <div className="flex flex-wrap gap-2">
-            <Badge>Multi-day</Badge>
-            <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-foreground/90">
-              <CalendarRange size={15} className="text-gold" />
-              {formatDateRangeIt(series.startDate, series.endDate)}
-            </span>
-          </div>
-        }
-      >
+    <DetailShell
+      backHref="/tornei"
+      backLabel="Torna al calendario"
+      backOnMobile={false}
+      aboveImage={kicker(true)}
+      images={series.images}
+      imageAlt={`Locandina ${series.title}`}
+    >
+      <DetailTitle kicker={<div className="hidden lg:block">{kicker(false)}</div>}>
         {series.title}
       </DetailTitle>
 
@@ -78,44 +89,7 @@ export default async function SeriePage({
         ) : (
           <div className="flex flex-col gap-3">
             {flights.map((flight) => (
-              <Link key={flight.slug} href={`/eventi/${flight.slug}`} className="card-modern group flex items-stretch overflow-hidden">
-                <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-white/[0.06] bg-white/[0.03] sm:w-24">
-                  <span className="font-display text-3xl font-extrabold leading-none tracking-tight text-gold-gradient">
-                    {formatDayNumber(flight.date)}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-muted">{formatMonthFullIt(flight.date)}</span>
-                </div>
-                <div className="flex flex-1 flex-col gap-2 px-4 py-4 sm:px-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {flight.phase && <Badge>{flight.phase}</Badge>}
-                    <span className="font-semibold text-foreground transition-colors group-hover:text-gold-light">{series.title}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-                    <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1">
-                      <Clock size={13} className="text-gold" />
-                      {flight.time}
-                    </span>
-                    <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
-                      Buy-in <strong className="text-foreground">{formatNumberIt(flight.buyIn)}</strong>
-                    </span>
-                    {flight.startingStack ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1">
-                        <Layers size={13} className="text-gold" />
-                        {formatNumberIt(flight.startingStack)}
-                      </span>
-                    ) : null}
-                    {flight.levelDurationMinutes ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1">
-                        <Timer size={13} className="text-gold" />
-                        {flight.levelDurationMinutes} min
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-                <span className="hidden items-center pr-5 text-muted transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-gold-light sm:flex">
-                  <ArrowUpRight size={18} />
-                </span>
-              </Link>
+              <FlightCard key={flight.slug} flight={flight} />
             ))}
           </div>
         )}

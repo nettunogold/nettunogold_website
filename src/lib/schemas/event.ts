@@ -48,11 +48,23 @@ const dettagliGroupSchema = z.object({
     z.number("Lo stack iniziale deve essere un numero (in chips)").positive("Lo stack iniziale deve essere maggiore di zero")
   ),
 
-  // Durata di un livello di blind, in minuti (dato rapido mostrato nella
-  // scheda torneo). Se non nota/variabile: null.
-  levelDurationMinutes: optionalNumber(
-    z.number("La durata dei livelli deve essere un numero (minuti)").int().positive()
-  ),
+  // Premio garantito al primo classificato (in euro). Compare solo nella
+  // pagina del torneo, sotto il garantito. Se non c'è: null.
+  firstPrize: optionalNumber(z.number("Il GTD primo deve essere un numero (in euro)").nonnegative()),
+
+  // Durata di un livello di blind, in minuti. Può cambiare con la struttura:
+  // "20/25" (il pannello salva un numero se è uno solo, es. 20). Se non
+  // nota: null.
+  levelDurationMinutes: z
+    .preprocess(
+      (value) => (value === "" || value == null ? null : typeof value === "number" ? String(value) : value),
+      z
+        .string()
+        .transform((v) => v.replace(/\s+/g, ""))
+        .pipe(z.string().regex(/^\d+(\/\d+)*$/, "La durata dei livelli deve essere in minuti, es. 20 oppure 20/25"))
+        .nullable()
+    )
+    .default(null),
 });
 
 const eventShape = z.object({
@@ -100,6 +112,7 @@ export const eventSchema = eventShape.transform((data) => {
     guaranteed: data.dettagli.guaranteed,
     startingStack: data.dettagli.startingStack,
     levelDurationMinutes: data.dettagli.levelDurationMinutes,
+    firstPrize: data.dettagli.firstPrize,
     seriesSlug: data.serie.seriesSlug,
     phase: data.serie.phase,
     description: data.description,

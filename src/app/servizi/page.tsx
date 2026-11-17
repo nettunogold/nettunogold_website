@@ -4,7 +4,6 @@ import { PageHero } from "@/components/sections/PageHero";
 import { ServiceIcon } from "@/components/ui/ServiceIcon";
 import { Reveal } from "@/components/ui/Reveal";
 import { PhotoBanner } from "@/components/ui/PhotoBanner";
-import { businessInfo } from "@/lib/site-config";
 import { services } from "@/lib/data/services";
 
 export const metadata: Metadata = {
@@ -26,11 +25,6 @@ export default function ServiziPage() {
             src="/sala/sala-panoramica.jpg"
             alt="Panoramica della sala di Nettuno Gold con i tavoli numerati e i monitor dei tornei"
             title="Uno spazio pensato per il gioco"
-            stats={[
-              { value: `${businessInfo.stats.areaSqm} m²`, label: "Di sala" },
-              { value: `${businessInfo.stats.tables}`, label: "Tavoli" },
-              { value: `${businessInfo.stats.maxPlayers}`, label: "Posti" },
-            ]}
           />
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
