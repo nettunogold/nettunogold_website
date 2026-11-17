@@ -8,9 +8,10 @@
   },
   "dettagli": {
     "buyIn": 70,
-    "guaranteed": 15000,
     "startingStack": 100000,
-    "levelDurationMinutes": 20
+    "guaranteed": 15000,
+    "firstPrize": 4000,
+    "levelDurationMinutes": "20/25"
   },
   "images": [
     "/eventi/2026-11-20.jpg"

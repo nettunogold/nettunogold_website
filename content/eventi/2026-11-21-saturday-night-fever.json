@@ -8,8 +8,9 @@
   },
   "dettagli": {
     "buyIn": 40,
-    "guaranteed": 6000,
     "startingStack": 50000,
+    "guaranteed": 6000,
+    "firstPrize": 2000,
     "levelDurationMinutes": 20
   },
   "images": [
