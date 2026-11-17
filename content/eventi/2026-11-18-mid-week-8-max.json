@@ -1,0 +1,18 @@
+{
+  "torneo": {
+    "title": "Mid Week 8/MAX",
+    "day": "18",
+    "month": "11",
+    "year": "2026",
+    "time": "19:00"
+  },
+  "dettagli": {
+    "buyIn": 50,
+    "guaranteed": 4000,
+    "startingStack": 50000,
+    "levelDurationMinutes": 20
+  },
+  "images": [
+    "/eventi/2026-11-18.jpg"
+  ]
+}
