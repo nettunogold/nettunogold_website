@@ -4,6 +4,7 @@ import { CalendarDays, Clock, Coins, Layers, ArrowUpRight } from "lucide-react";
 import type { Event } from "@/lib/schemas/event";
 import { Badge } from "@/components/ui/Badge";
 import { formatDateIt, formatNumberIt } from "@/lib/utils";
+import { EventSummary } from "@/components/events/card-parts";
 
 // Nota: la card non risolve da sola il titolo della serie (event.seriesSlug)
 // perché è usata anche dentro componenti client dove il layer dati basato
@@ -20,7 +21,7 @@ export function EventCard({
 }) {
   return (
     <Link href={`/eventi/${event.slug}`} className="card-modern group flex w-full flex-col overflow-hidden">
-      <div className="relative aspect-[4/3] w-full overflow-hidden">
+      <div className="relative aspect-[16/9] w-full overflow-hidden sm:aspect-[4/3]">
         <Image
           src={event.images[0]}
           alt={`Locandina ${event.title}`}
@@ -30,7 +31,7 @@ export function EventCard({
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d10] via-[#0d0d10]/20 to-transparent" />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+        <div className="absolute left-3 top-3 hidden flex-wrap gap-2 sm:flex">
           {seriesTitle && (
             <Badge>
               {seriesTitle}
@@ -43,7 +44,12 @@ export function EventCard({
         </span>
       </div>
 
-      <div className="relative flex flex-1 flex-col gap-3 p-5">
+      {/* Telefono: riepilogo compatto (data in evidenza, dati su una striscia) */}
+      <div className="p-4 sm:hidden">
+        <EventSummary event={event} seriesTitle={seriesTitle} />
+      </div>
+
+      <div className="relative hidden flex-1 flex-col gap-3 p-5 sm:flex">
         <h3 className="font-display text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-gold-light">
           {event.title}
         </h3>

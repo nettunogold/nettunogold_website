@@ -4,7 +4,7 @@ import { ArrowRight, CalendarDays, Clock, Coins, Layers, Timer } from "lucide-re
 import { getEventBySlug, getEvents } from "@/lib/data/events";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { DetailShell, DetailTitle, StatTile, GuaranteedPanel, DescriptionCard } from "@/components/events/Detail";
+import { DetailShell, DetailTitle, StatRow, StatTile, GuaranteedPanel, DescriptionCard } from "@/components/events/Detail";
 import { formatDateIt, formatNumberIt } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -61,7 +61,20 @@ export default async function EventoPage({
         {event.title}
       </DetailTitle>
 
-      <Reveal delay={0.05} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {/* Telefono: tre righe. Da tablet in su: blocchi in griglia. */}
+      <Reveal delay={0.05} className="flex flex-col gap-2 sm:hidden">
+        <StatRow icon={Coins} label="Buy-in" value={formatNumberIt(event.buyIn)} highlight />
+        {event.startingStack ? (
+          <StatRow icon={Layers} label="Stack iniziale" value={formatNumberIt(event.startingStack)} />
+        ) : null}
+        <StatRow
+          icon={Timer}
+          label="Durata livelli"
+          value={event.levelDurationMinutes ? `${event.levelDurationMinutes} min` : "—"}
+        />
+      </Reveal>
+
+      <Reveal delay={0.05} className="hidden grid-cols-2 gap-3 sm:grid sm:grid-cols-3">
         <StatTile icon={Coins} label="Buy-in" value={formatNumberIt(event.buyIn)} highlight />
         {event.startingStack ? (
           <StatTile icon={Layers} label="Stack iniziale" value={formatNumberIt(event.startingStack)} />
@@ -73,7 +86,11 @@ export default async function EventoPage({
         />
       </Reveal>
 
-      {event.guaranteed ? <GuaranteedPanel label="Montepremi garantito" amount={event.guaranteed} /> : null}
+      {event.guaranteed ? (
+        <GuaranteedPanel label="Montepremi garantito" amount={event.guaranteed} firstPrize={event.firstPrize} />
+      ) : event.firstPrize ? (
+        <GuaranteedPanel label="Garantito al primo" amount={event.firstPrize} />
+      ) : null}
 
       {event.description ? <DescriptionCard text={event.description} /> : null}
 
