@@ -61,7 +61,7 @@ export const services: Service[] = [
   {
     icon: "Sofa",
     title: "Zona relax esterna",
-    description: "Spazio esterno dedicato alle pause tra un livello e l'altro.",
+    description: "Spazio esterno dedicato alle pause e al tempo libero.",
   },
   {
     icon: "ParkingCircle",

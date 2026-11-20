@@ -29,7 +29,6 @@ export default function ContattiPage() {
   return (
     <>
       <PageHero
-        eyebrow="Contatti"
         title="Dove siamo"
         subtitle="Siamo a Villanova di Castenaso, a pochi minuti da Bologna. Scrivici o vieni a trovarci."
       />
