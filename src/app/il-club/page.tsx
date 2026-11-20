@@ -57,11 +57,11 @@ const values = [
 const staffRoles = [
   {
     role: "Tournament Director",
-    text: "Coordina la struttura di ogni torneo, dalle blind ai regolamenti, garantendo il rispetto delle regole in ogni fase di gioco.",
+    text: "Coordina la struttura di ogni torneo, garantendo il rispetto delle regole in ogni fase di gioco.",
   },
   {
     role: "Floorman",
-    text: "Presente in sala durante tutto il torneo per gestire dispute, ruling e organizzazione dei tavoli.",
+    text: "Presente in sala durante tutto il torneo per gestire organizzazione dei tavoli e ruling.",
   },
   {
     role: "Dealer Team",
@@ -75,7 +75,7 @@ export default function IlClubPage() {
       <PageHero
         
         title="Il Club"
-        subtitle="La storia, la mission e le persone che ogni giorno rendono Nettuno Gold un punto di riferimento per il poker a Bologna."
+        subtitle="L'idea e le persone che ogni giorno rendono Nettuno Gold un punto di riferimento per il poker a Bologna."
       />
       <div className="pb-16 md:pb-24">
         <Container className="flex flex-col gap-24">
@@ -85,8 +85,7 @@ export default function IlClubPage() {
             alt="La sala di Nettuno Gold piena di giocatori durante un torneo"
             title="Quasi 2.000 soci, una sola passione"
           />
-
-          {/* Storia: linea del tempo */}
+          {/*
           <section className="flex flex-col gap-10">
             <SectionHeading eyebrow="La nostra storia" title="Da idea a punto di riferimento" align="left" />
             <ol className="relative grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -104,11 +103,11 @@ export default function IlClubPage() {
               ))}
             </ol>
           </section>
-
+          */}
           {/* Mission e valori */}
           <section className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
             <div className="flex flex-col gap-6 lg:sticky lg:top-28">
-              <SectionHeading eyebrow="La nostra mission" title="Una sicurezza per il giocatore" align="left" />
+              <SectionHeading eyebrow="La nostra missione" title="Una sicurezza per il giocatore" align="left" />
               <Reveal delay={0.1}>
                 <p className="text-lg leading-relaxed text-foreground/75">
                   Offrire il miglior ambiente possibile per giocare a Texas Hold&apos;em a Bologna: tornei organizzati

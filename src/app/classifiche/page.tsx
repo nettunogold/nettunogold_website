@@ -26,7 +26,7 @@ export default function ClassifichePage() {
     <>
       <PageHero
         title="Classifiche"
-        subtitle="Classifica della serie in corso e classifica generale annuale, aggiornate dopo ogni tornei valido."
+        subtitle="Classifiche aggiornate dopo ogni torneo valido."
       />
       <div className="pb-16 md:pb-24">
         <Container className="flex flex-col gap-10">
@@ -92,9 +92,11 @@ export default function ClassifichePage() {
             <p className="card-static w-full p-5 text-center text-sm text-muted">
               I dati mostrati potrebbero non essere aggiornati in tempo reale.
             </p>
+            {/*}
             <Button href="/classifiche/regolamento" variant="secondary" size="lg">
               Leggi il regolamento <ArrowRight size={18} />
             </Button>
+            */}
           </Reveal>
         </Container>
       </div>

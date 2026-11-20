@@ -1,19 +1,18 @@
-import { ArrowRight, CalendarHeart, Users, Trophy, LayoutGrid } from "lucide-react";
+import { ArrowRight, Users, Trophy, LayoutGrid } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { businessInfo } from "@/lib/site-config";
-import { formatNumberIt } from "@/lib/utils";
+import { cn, formatNumberIt } from "@/lib/utils";
 
 const stats = [
-  { icon: CalendarHeart, value: `${new Date().getFullYear() - businessInfo.stats.since}+`, label: "Anni di attività" },
   { icon: Users, value: `${formatNumberIt(businessInfo.stats.members)}+`, label: "Soci" },
-  { icon: Trophy, value: `${businessInfo.stats.tournamentsPerYear}`, label: "Tornei l'anno" },
   { icon: LayoutGrid, value: `${businessInfo.stats.tables}`, label: "Tavoli da gioco" },
+  { icon: Trophy, value: `${businessInfo.stats.tournamentsPerYear}`, label: "Tornei l'anno" },
 ];
 
-const introText = `Nato nel ${businessInfo.stats.since}, Nettuno Gold è oggi uno dei punti di riferimento del Texas Hold'em nel bolognese: ${businessInfo.stats.areaSqm} m² di sala, ${businessInfo.stats.tables} tavoli e uno staff che segue ogni torneo dal primo all'ultimo livello.`;
+const introText = `Nettuno Gold è oggi uno dei punti di riferimento del Texas Hold'em nel bolognese: ${businessInfo.stats.areaSqm} m² di sala, ${businessInfo.stats.tables} tavoli e uno staff che segue ogni torneo dal primo all'ultimo livello.`;
 
 export function ClubIntro() {
   return (
@@ -37,18 +36,25 @@ export function ClubIntro() {
             </Reveal>
           </div>
 
-          <dl className="grid grid-cols-2 gap-3 sm:gap-5">
+          {/* Telefono: righe a tutta larghezza. Tablet: tre blocchi affiancati.
+              Computer: il primo dato in evidenza su tutta la riga, gli altri due sotto. */}
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-2 lg:gap-5">
             {stats.map((stat, i) => (
-              <Reveal key={stat.label} delay={0.08 * i} className={i % 2 === 1 ? "sm:translate-y-8" : ""}>
-                <div className="card-modern flex flex-col gap-4 p-5 sm:p-7">
-                  <span className="icon-orb h-11 w-11">
-                    <stat.icon size={20} />
+              <Reveal key={stat.label} delay={0.08 * i} className={cn("h-full", i === 0 && "lg:col-span-2")}>
+                <div
+                  className={cn(
+                    "card-modern flex h-full items-center gap-4 px-5 py-4 sm:flex-col sm:items-start sm:p-6 lg:p-7",
+                    i === 0 && "lg:flex-row lg:items-center lg:gap-6"
+                  )}
+                >
+                  <span className={cn("icon-orb h-11 w-11 shrink-0", i === 0 && "lg:h-14 lg:w-14")}>
+                    <stat.icon size={i === 0 ? 22 : 20} />
                   </span>
                   <div>
-                    <dd className="font-display text-3xl font-bold tracking-tight text-gold-gradient sm:text-5xl">
+                    <dd className="font-display text-3xl font-bold leading-none tracking-tight text-gold-gradient sm:text-4xl lg:text-5xl">
                       {stat.value}
                     </dd>
-                    <dt className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted">{stat.label}</dt>
+                    <dt className="mt-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-muted">{stat.label}</dt>
                   </div>
                 </div>
               </Reveal>
