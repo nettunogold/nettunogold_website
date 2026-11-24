@@ -1,0 +1,19 @@
+{
+  "torneo": {
+    "title": "Black Friday",
+    "day": "27",
+    "month": "11",
+    "year": "2026",
+    "time": "19:00"
+  },
+  "dettagli": {
+    "buyIn": 50,
+    "startingStack": 60000,
+    "guaranteed": 10000,
+    "firstPrize": 2500,
+    "levelDurationMinutes": 20
+  },
+  "images": [
+    "/eventi/whatsapp-image-2026-11-24-at-18.24.15.jpeg"
+  ]
+}
