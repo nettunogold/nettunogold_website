@@ -1,0 +1,19 @@
+{
+  "torneo": {
+    "title": "Mid Week 8/Max",
+    "day": "25",
+    "month": "11",
+    "year": "2026",
+    "time": "19:00"
+  },
+  "dettagli": {
+    "buyIn": 50,
+    "startingStack": 50000,
+    "guaranteed": 4000,
+    "firstPrize": 1200,
+    "levelDurationMinutes": 20
+  },
+  "images": [
+    "/eventi/whatsapp-image-2026-11-24-at-18.24.14.jpeg"
+  ]
+}
