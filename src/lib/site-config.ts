@@ -33,8 +33,8 @@ export const businessInfo = {
     "https://www.google.com/maps/search/?api=1&query=Via+Toscanini+7%2F2%2C+40055+Villanova+di+Castenaso+BO",
   stats: {
     since: 2007,
-    members: 2000,
-    tournamentsPerYear: 150,
+    members: 5000, // mostrato come "5.000+"
+    tournamentsPerYear: 200, // mostrato come "200+"
     areaSqm: 500,
     tables: 18,
     maxPlayers: 180,

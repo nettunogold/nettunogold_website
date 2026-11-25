@@ -393,3 +393,34 @@ body {
     animation: none;
   }
 }
+
+/* Disclaimer maggiorenni (AgeGate): visibile finché <html> non ha
+   data-age-ok; nel frattempo la pagina sotto non scorre. */
+html[data-age-ok] .age-gate {
+  display: none;
+}
+html:not([data-age-ok]) body {
+  overflow: hidden;
+}
+.age-gate {
+  animation: age-gate-in 0.35s ease-out both;
+}
+.age-gate__card {
+  animation: age-gate-card-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.age-gate[data-leaving] {
+  opacity: 0;
+  transition: opacity 0.22s ease-in;
+}
+@keyframes age-gate-in {
+  from { opacity: 0; }
+}
+@keyframes age-gate-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .age-gate,
+  .age-gate__card {
+    animation: none;
+  }
+}

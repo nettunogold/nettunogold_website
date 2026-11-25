@@ -5,12 +5,16 @@ import { PageHero } from "@/components/sections/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { PhotoBanner } from "@/components/ui/PhotoBanner";
+import { ServiceIcon } from "@/components/ui/ServiceIcon";
 import { businessInfo } from "@/lib/site-config";
+import { services } from "@/lib/data/services";
 
+// Pagina unica "Il Club": comprende anche la vecchia pagina "La Sala"
+// (/servizi, ora reindirizzata alla sezione #la-sala).
 export const metadata: Metadata = {
   title: "Il Club",
   description:
-    "La storia di Nettuno Gold, poker room di Bologna dal 2007: mission, valori e lo staff che rende possibile ogni torneo.",
+    "La storia di Nettuno Gold, poker room di Bologna dal 2007: mission, valori, la sala con 18 tavoli da Texas Hold'em, staff professionale, bar con servizio al tavolo e tutti i servizi, e lo staff che rende possibile ogni torneo.",
 };
 
 const milestones = [
@@ -45,7 +49,7 @@ const values = [
   {
     icon: Users2,
     title: "Community",
-    text: "Quasi 2.000 soci: un club prima ancora che una sala da gioco, con eventi e serie stagionali dedicate.",
+    text: "Oltre 5.000 soci: un club prima ancora che una sala da gioco, con eventi e serie stagionali dedicate.",
   },
   {
     icon: ShieldCheck,
@@ -75,7 +79,7 @@ export default function IlClubPage() {
       <PageHero
         
         title="Il Club"
-        subtitle="L'idea e le persone che ogni giorno rendono Nettuno Gold un punto di riferimento per il poker a Bologna."
+        subtitle="L'idea e le persone che ogni giorno rendono Nettuno Gold un punto di riferimento per il poker sportivo a Bologna."
       />
       <div className="pb-16 md:pb-24">
         <Container className="flex flex-col gap-24">
@@ -83,7 +87,7 @@ export default function IlClubPage() {
             priority
             src="/sala/sala-piena.jpg"
             alt="La sala di Nettuno Gold piena di giocatori durante un torneo"
-            title="Quasi 2.000 soci, una sola passione"
+            title="Oltre 5.000 soci, una sola passione"
           />
           {/*
           <section className="flex flex-col gap-10">
@@ -112,7 +116,7 @@ export default function IlClubPage() {
                 <p className="text-lg leading-relaxed text-foreground/75">
                   Offrire il miglior ambiente possibile per giocare a Texas Hold&apos;em a Bologna: tornei organizzati
                   con rigore, uno staff sempre presente e una sala pensata per far sentire ogni giocatore a proprio
-                  agio, dal primo buy-in al tavolo finale.
+                  agio.
                 </p>
               </Reveal>
             </div>
@@ -125,6 +129,30 @@ export default function IlClubPage() {
                     </span>
                     <h3 className="font-display text-lg font-bold text-foreground">{v.title}</h3>
                     <p className="text-sm leading-relaxed text-muted">{v.text}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+
+          {/* La Sala (ex pagina /servizi) */}
+          <section id="la-sala" className="flex scroll-mt-28 flex-col gap-12">
+            <PhotoBanner
+              src="/sala/sala-panoramica.jpg"
+              alt="Panoramica della sala di Nettuno Gold con i tavoli numerati e i monitor dei tornei"
+              eyebrow="La Sala"
+              title="Uno spazio pensato per il poker sportivo"
+            />
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map((service, i) => (
+                <Reveal key={service.title} delay={0.05 * (i % 3)} className="flex">
+                  <div className="card-modern group flex w-full flex-col gap-4 p-7">
+                    <span className="icon-orb h-12 w-12 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[-6deg]">
+                      <ServiceIcon name={service.icon} size={22} />
+                    </span>
+                    <h3 className="font-display text-lg font-semibold text-foreground">{service.title}</h3>
+                    <p className="text-sm leading-relaxed text-muted">{service.description}</p>
                   </div>
                 </Reveal>
               ))}

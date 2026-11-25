@@ -52,6 +52,11 @@ const dettagliGroupSchema = z.object({
   // pagina del torneo, sotto il garantito. Se non c'è: null.
   firstPrize: optionalNumber(z.number("Il GTD primo deve essere un numero (in euro)").nonnegative()),
 
+  // Prezzo speciale (euro, intero). Compare solo nella pagina del torneo.
+  specialPrice: optionalNumber(
+    z.number("Lo special price deve essere un numero (in euro)").int("Lo special price deve essere un numero intero").nonnegative()
+  ),
+
   // Durata di un livello di blind, in minuti. Può cambiare con la struttura:
   // "20/25" (il pannello salva un numero se è uno solo, es. 20). Se non
   // nota: null.
@@ -113,6 +118,7 @@ export const eventSchema = eventShape.transform((data) => {
     startingStack: data.dettagli.startingStack,
     levelDurationMinutes: data.dettagli.levelDurationMinutes,
     firstPrize: data.dettagli.firstPrize,
+    specialPrice: data.dettagli.specialPrice,
     seriesSlug: data.serie.seriesSlug,
     phase: data.serie.phase,
     description: data.description,

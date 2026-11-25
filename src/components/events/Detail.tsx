@@ -86,6 +86,19 @@ export function DetailTitle({ children, kicker }: { children: React.ReactNode; k
   );
 }
 
+// "highlight": true = bordo e cifra oro (buy-in); "soft" = stesso stile ma
+// più tenue (special price).
+type Highlight = boolean | "soft";
+
+const highlightBox = (h: Highlight) =>
+  h === "soft"
+    ? "border border-gold/[0.18] bg-gradient-to-b from-white/[0.05] to-white/[0.015]"
+    : h
+      ? "border border-gold/35 bg-gradient-to-b from-white/[0.05] to-white/[0.015]"
+      : "card-static";
+
+const highlightValue = (h: Highlight) => (h === "soft" ? "text-gold" : h ? "text-gold-light" : "text-foreground");
+
 export function StatTile({
   icon: Icon,
   label,
@@ -95,21 +108,16 @@ export function StatTile({
   icon: LucideIcon;
   label: string;
   value: string;
-  highlight?: boolean;
+  highlight?: Highlight;
 }) {
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-3 rounded-2xl p-4 sm:p-5",
-        highlight ? "border border-gold/35 bg-gradient-to-b from-white/[0.05] to-white/[0.015]" : "card-static"
-      )}
-    >
+    <div className={cn("flex flex-col gap-3 rounded-2xl p-4 sm:p-5", highlightBox(highlight))}>
       <span className="icon-orb h-9 w-9">
         <Icon size={16} />
       </span>
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">{label}</div>
-        <div className={cn("mt-0.5 text-xl font-bold", highlight ? "text-gold-light" : "text-foreground")}>{value}</div>
+        <div className={cn("mt-0.5 text-xl font-bold", highlightValue(highlight))}>{value}</div>
       </div>
     </div>
   );
@@ -126,20 +134,15 @@ export function StatRow({
   icon: LucideIcon;
   label: string;
   value: string;
-  highlight?: boolean;
+  highlight?: Highlight;
 }) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-3 rounded-2xl px-4 py-3",
-        highlight ? "border border-gold/35 bg-gradient-to-b from-white/[0.05] to-white/[0.015]" : "card-static"
-      )}
-    >
+    <div className={cn("flex items-center gap-3 rounded-2xl px-4 py-3", highlightBox(highlight))}>
       <span className="icon-orb h-8 w-8 shrink-0">
         <Icon size={15} />
       </span>
       <span className="flex-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">{label}</span>
-      <span className={cn("tabular text-lg font-bold", highlight ? "text-gold-light" : "text-foreground")}>{value}</span>
+      <span className={cn("tabular text-lg font-bold", highlightValue(highlight))}>{value}</span>
     </div>
   );
 }

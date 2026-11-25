@@ -6,6 +6,8 @@ export type Service = {
     | "Grid3x3"
     | "Users"
     | "MonitorPlay"
+    | "ChessKnight"
+    | "Club"
     | "Coffee"
     | "Wifi"
     | "Tv"
@@ -51,7 +53,7 @@ export const services: Service[] = [
   {
     icon: "ShieldCheck",
     title: "Videosorveglianza",
-    description: "32 telecamere per la sicurezza di giocatori e struttura.",
+    description: "Telecamere per la sicurezza di giocatori e struttura.",
   },
   {
     icon: "Snowflake",
@@ -67,5 +69,10 @@ export const services: Service[] = [
     icon: "ParkingCircle",
     title: "Ampio parcheggio",
     description: "Parcheggio gratuito riservato ai clienti del locale.",
+  },
+  {
+    icon: "ChessKnight",
+    title: "Tornei di scacchi e bridge",
+    description: "Non solo poker sportivo: la sala ospita anche tornei di scacchi, bridge e burraco.",
   },
 ];

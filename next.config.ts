@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
   // vedi il tag <link rel="cms-config-url"> in public/admin/index.html,
   // così funziona sia con sia senza slash finale, senza bisogno di
   // redirect che andrebbero in loop con la normalizzazione di Next).
+  // "La Sala" (/servizi) è stata unita alla pagina Il Club: i vecchi link
+  // (Google, social, segnalibri) portano alla sezione della sala.
+  async redirects() {
+    return [{ source: "/servizi", destination: "/il-club#la-sala", permanent: true }];
+  },
   async rewrites() {
     return [
       { source: "/admin", destination: "/admin/index.html" },
