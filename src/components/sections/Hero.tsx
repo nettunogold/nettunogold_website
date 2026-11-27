@@ -77,7 +77,7 @@ export function Hero() {
           </motion.h1>
 
           <motion.div {...fadeUp(0.3)} className="hidden sm:block">
-            <Eyebrow>Il punto di riferimento del Texas Hold&apos;em a Bologna</Eyebrow>
+            <Eyebrow>Il punto di riferimento del Texas Hold&apos;em in Emilia Romagna</Eyebrow>
           </motion.div>
 
           <motion.div {...fadeUp(0.4)} className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">

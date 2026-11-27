@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarDays, Clock, Coins, Layers, Timer } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, Coins, Layers, Tag, Timer } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { getEventBySlug, getEvents } from "@/lib/data/events";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { DetailShell, DetailTitle, StatRow, StatTile, GuaranteedPanel, DescriptionCard } from "@/components/events/Detail";
-import { formatDateIt, formatNumberIt } from "@/lib/utils";
+import { cn, formatDateIt, formatNumberIt } from "@/lib/utils";
 
 export function generateStaticParams() {
   return getEvents().map((event) => ({ slug: event.slug }));
@@ -42,6 +43,16 @@ export default async function EventoPage({
   const event = getEventBySlug(slug);
   if (!event) notFound();
 
+  // Con quattro dati la griglia diventa 2×2 (special price e buy-in in alto).
+  const stats: { icon: LucideIcon; label: string; value: string; highlight?: boolean | "soft" }[] = [
+    ...(event.specialPrice != null
+      ? [{ icon: Tag, label: "Special price", value: formatNumberIt(event.specialPrice), highlight: "soft" as const }]
+      : []),
+    { icon: Coins, label: "Buy-in", value: formatNumberIt(event.buyIn), highlight: true },
+    ...(event.startingStack ? [{ icon: Layers, label: "Stack iniziale", value: formatNumberIt(event.startingStack) }] : []),
+    { icon: Timer, label: "Durata livelli", value: event.levelDurationMinutes ? `${event.levelDurationMinutes} min` : "—" },
+  ];
+
   return (
     <DetailShell backHref="/tornei" backLabel="Torna al calendario" images={event.images} imageAlt={`Locandina ${event.title}`}>
       <DetailTitle
@@ -61,29 +72,20 @@ export default async function EventoPage({
         {event.title}
       </DetailTitle>
 
-      {/* Telefono: tre righe. Da tablet in su: blocchi in griglia. */}
+      {/* Telefono: una riga per dato. Da tablet in su: blocchi in griglia. */}
       <Reveal delay={0.05} className="flex flex-col gap-2 sm:hidden">
-        <StatRow icon={Coins} label="Buy-in" value={formatNumberIt(event.buyIn)} highlight />
-        {event.startingStack ? (
-          <StatRow icon={Layers} label="Stack iniziale" value={formatNumberIt(event.startingStack)} />
-        ) : null}
-        <StatRow
-          icon={Timer}
-          label="Durata livelli"
-          value={event.levelDurationMinutes ? `${event.levelDurationMinutes} min` : "—"}
-        />
+        {stats.map((stat) => (
+          <StatRow key={stat.label} {...stat} />
+        ))}
       </Reveal>
 
-      <Reveal delay={0.05} className="hidden grid-cols-2 gap-3 sm:grid sm:grid-cols-3">
-        <StatTile icon={Coins} label="Buy-in" value={formatNumberIt(event.buyIn)} highlight />
-        {event.startingStack ? (
-          <StatTile icon={Layers} label="Stack iniziale" value={formatNumberIt(event.startingStack)} />
-        ) : null}
-        <StatTile
-          icon={Timer}
-          label="Durata livelli"
-          value={event.levelDurationMinutes ? `${event.levelDurationMinutes} min` : "—"}
-        />
+      <Reveal
+        delay={0.05}
+        className={cn("hidden gap-3 sm:grid", stats.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}
+      >
+        {stats.map((stat) => (
+          <StatTile key={stat.label} {...stat} />
+        ))}
       </Reveal>
 
       {event.guaranteed ? (

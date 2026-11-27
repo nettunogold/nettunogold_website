@@ -9,7 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/tornei",
     "/il-club",
-    "/servizi",
     "/classifiche",
     "/classifiche/regolamento",
     "/news",

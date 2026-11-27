@@ -9,10 +9,10 @@ import { cn, formatNumberIt } from "@/lib/utils";
 const stats = [
   { icon: Users, value: `${formatNumberIt(businessInfo.stats.members)}+`, label: "Soci" },
   { icon: LayoutGrid, value: `${businessInfo.stats.tables}`, label: "Tavoli da gioco" },
-  { icon: Trophy, value: `${businessInfo.stats.tournamentsPerYear}`, label: "Tornei l'anno" },
+  { icon: Trophy, value: `${businessInfo.stats.tournamentsPerYear}+`, label: "Tornei l'anno" },
 ];
 
-const introText = `Nettuno Gold è oggi uno dei punti di riferimento del Texas Hold'em nel bolognese: ${businessInfo.stats.areaSqm} m² di sala, ${businessInfo.stats.tables} tavoli e uno staff che segue ogni torneo dal primo all'ultimo livello.`;
+const introText = `Nettuno Gold è oggi uno dei punti di riferimento del Texas Hold'em in Emilia Romagna: ${businessInfo.stats.areaSqm} m² di sala, ${businessInfo.stats.tables} tavoli e uno staff professionale e preparato.`;
 
 export function ClubIntro() {
   return (
@@ -27,7 +27,7 @@ export function ClubIntro() {
             <SectionHeading eyebrow="Il Club" title="Una casa per il poker a Bologna" align="left" />
             <Reveal delay={0.1} className="flex flex-col gap-4 text-lg leading-relaxed text-foreground/75">
               <p>{introText}</p>
-              <p>Un ambiente elegante e curato, pensato per chi il poker lo vive con passione.</p>
+              <p>Un ambiente elegante e curato, pensato per chi il poker sportivo lo vive con passione.</p>
             </Reveal>
             <Reveal delay={0.2}>
               <Button href="/il-club" variant="secondary">

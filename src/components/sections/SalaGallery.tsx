@@ -45,7 +45,6 @@ export function SalaGallery() {
     <section className="relative py-14 sm:py-24 md:py-32">
       <Container className="flex flex-col gap-8 sm:gap-14">
         <SectionHeading
-          eyebrow="Tutto quello che serve per giocare bene"
           eyebrowClassName="hidden sm:inline-flex"
           title="La nostra location"
           subtitle="Una sala ampia e luminosa, monitor con struttura e chip count in tempo reale, e una community che riempie i tavoli tutte le settimane."
@@ -87,7 +86,7 @@ export function SalaGallery() {
         </div>
 
         <Reveal className="flex justify-center">
-          <Button href="/servizi" variant="secondary" size="lg">
+          <Button href="/il-club#la-sala" variant="secondary" size="lg">
             Vedi tutti i servizi <ArrowRight size={18} />
           </Button>
         </Reveal>

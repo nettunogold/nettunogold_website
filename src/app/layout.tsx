@@ -3,6 +3,8 @@ import { Sora, Plus_Jakarta_Sans, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AgeGate } from "@/components/layout/AgeGate";
+import { AGE_GATE_SCRIPT } from "@/lib/age-gate";
 import { SITE_URL, businessInfo } from "@/lib/site-config";
 
 // Titoli: Sora (geometrico, moderno). Testo: Plus Jakarta Sans.
@@ -90,10 +92,19 @@ export default function RootLayout({
   };
 
   return (
+    // suppressHydrationWarning: lo script del disclaimer aggiunge data-age-ok
+    // a <html> prima che React prenda il controllo della pagina.
     <html
       lang="it"
       className={`${sora.variable} ${jakarta.variable} ${cinzel.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: AGE_GATE_SCRIPT }} />
+        <noscript>
+          <style>{`.age-gate{display:none!important}html body{overflow:auto}`}</style>
+        </noscript>
+      </head>
       <body className="relative min-h-full flex flex-col bg-background text-foreground">
         <script
           type="application/ld+json"
@@ -110,6 +121,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <AgeGate />
       </body>
     </html>
   );

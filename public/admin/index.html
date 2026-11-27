@@ -778,6 +778,131 @@
       .ng-save:hover { filter: brightness(1.08); }
       .ng-save:disabled { opacity: 0.45; cursor: default; filter: none; }
       .ng-pub__link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--ng-gold-light); font-size: 12px; cursor: pointer; text-decoration: underline; }
+
+      /* =====================================================================
+         TABLET E TELEFONO
+         Solo sotto i 900px: sopra, il pannello resta esattamente com'è.
+         ===================================================================== */
+      @media (max-width: 899px) {
+        /* Decap impone 800px minimi all'editor: su schermi più stretti la
+           pagina veniva rimpicciolita e diventava illeggibile. */
+        [class*="EditorContainer"],
+        [class*="ToolbarContainer"] { min-width: 0 !important; }
+        /* Form news: sezioni una sotto l'altra (la regola desktop è
+           !important, quindi va ripetuta qui). */
+        .ng-grid:has(> [data-ng-cell="testo"]) {
+          grid-template-areas: "nome" "dettagli" "locandina" "testo" !important;
+        }
+      }
+
+      @media (max-width: 640px) {
+        /* Testo dei campi a 16px: sotto questa misura iPhone ingrandisce la
+           pagina a ogni tocco su un campo. */
+        input,
+        select,
+        textarea { font-size: 16px !important; }
+
+        /* --- Elenco contenuti --- */
+        [class*="SidebarHeading"] { display: none !important; }
+        [class*="SidebarContainer"] { padding-top: 12px !important; }
+        /* Raccolte come pulsanti in griglia 2×2: sempre tutte visibili */
+        [class*="SidebarNavList"] {
+          display: grid !important;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          padding: 10px 12px 2px !important;
+        }
+        [class*="SidebarNavList"] > li { min-width: 0; }
+        [class*="SidebarNavLink"] {
+          justify-content: center;
+          padding: 11px 8px !important;
+          border: 1px solid var(--ng-border) !important;
+          border-radius: 12px !important;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 14px !important;
+        }
+        [class*="SidebarNavLink"]:hover,
+        .sidebar-active { border-color: rgba(201, 162, 39, 0.55) !important; }
+        /* Icone nascoste: lo spazio serve al nome */
+        [class*="SidebarNavLink"] [class*="IconWrapper"],
+        [class*="SidebarNavLink"] svg { display: none !important; }
+        .ng-pub { margin: 14px 12px 12px; }
+        .ng-pub__btn { padding: 13px 12px; font-size: 14px; }
+        [class*="ListCardLink"] { padding: 16px 14px !important; }
+        [class*="ListCardTitle"] { font-size: 15px !important; line-height: 1.35; }
+        .ng-has-del > a { padding-right: 58px !important; }
+        .ng-del { opacity: 1; width: 38px; height: 38px; right: 10px; }
+
+        /* --- Barra dell'editor: freccia + titolo, Salva, Elimina --- */
+        [class*="ToolbarSectionBackLink"] { padding: 0 8px 0 12px !important; min-width: 0; flex: 1 1 auto; }
+        [class*="BackArrow"] { margin-right: 8px !important; }
+        [class*="BackCollection"] {
+          font-size: 13px !important;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 34vw;
+        }
+        [class*="ToolbarSectionMain"] { padding: 0 8px 0 0 !important; flex: none; border: 0 !important; }
+        [class*="ToolbarSubSectionLast"],
+        [class*="ToolbarSectionMeta"] { display: none !important; }
+        .ng-save { height: 38px; padding: 0 16px; margin-right: 6px; }
+        [class*="ToolbarSubSectionFirst"] [class*="ToolbarButton"] {
+          height: 38px;
+          padding: 0 10px !important;
+          margin: 0 !important;
+          font-size: 13px !important;
+        }
+
+        /* --- Form --- */
+        [class*="ControlPaneContainer"] { padding-left: 0 !important; padding-right: 0 !important; }
+        .ng-grid { gap: 14px; padding: 14px 10px 48px !important; }
+        .ng-field__label { white-space: normal; }
+        .ng-sec { padding: 14px 12px 6px; border-radius: 14px; }
+        .ng-sec__title { margin-bottom: 12px; font-size: 12px; }
+        .ng-field__label { font-size: 10.5px; padding: 6px 10px; }
+        .ng-field input,
+        .ng-field select,
+        .ng-field textarea { padding: 11px 10px; }
+        /* Data su una riga (GG, MM, AAAA), orario sotto */
+        .ng-row--date > .ng-field:nth-child(-n + 3) { flex: 1 1 26%; }
+        .ng-row--date > .ng-field:nth-child(4) { flex: 1 1 100%; }
+        .ng-row--date .ng-field__label {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          letter-spacing: 0.05em;
+        }
+        .ng-thumb,
+        .ng-add { width: 96px; height: 132px; }
+        .ng-thumb__del { opacity: 1; width: 32px; height: 32px; }
+        .ng-toggle { height: 52px; }
+        .ng-btn { padding: 12px 16px; }
+        .ng-icon-btn { width: 36px; height: 36px; }
+
+        /* Campi standard di Decap (Serie, News, Classifiche) */
+        [class*="ControlContainer"]:not(.ng-cell) { margin-left: 0 !important; margin-right: 0 !important; }
+
+        /* --- Libreria immagini a tutto schermo --- */
+        [class*="StyledModal"] {
+          width: 100vw !important;
+          max-width: 100vw !important;
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          top: 0 !important;
+          left: 0 !important;
+          transform: none !important;
+          border-radius: 0 !important;
+          padding: 16px 12px !important;
+        }
+        [class*="StyledModal"] [class*="ButtonsContainer"] { flex-wrap: wrap; gap: 8px; }
+        /* Una colonna di immagini: centrata invece che appoggiata a sinistra */
+        [class*="CardGridContainer"] > div > div > div { position: relative; margin: 0 auto; }
+
+        .ng-notice { flex-wrap: wrap; bottom: 12px; }
+      }
     </style>
   </head>
   <body>
@@ -1109,6 +1234,9 @@
               pattern: /^\d+(\/\d+)*$/,
               message: "DURATA LIVELLI: scrivi i minuti, es. 20 oppure 20/25",
             },
+            // Prezzo speciale (intero): compare nella pagina del torneo,
+            // accanto a buy-in, stack e livelli.
+            { key: "specialPrice", label: "SPECIAL PRICE", int: true },
           ],
           "buyIn",
           "Il buy-in è obbligatorio (numero in euro)"

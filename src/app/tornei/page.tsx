@@ -16,7 +16,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Calendario Tornei",
   description:
-    "Calendario dei prossimi tornei di poker a Nettuno Gold Bologna: date, buy-in, stack iniziale, formato e montepremi garantito.",
+    "Calendario dei prossimi tornei di poker sportivo a Nettuno Gold Bologna: date, buy-in, stack iniziale, formato e montepremi garantito.",
 };
 
 export default function TorneiPage() {
