@@ -62,7 +62,7 @@ export function AgeGate() {
           Accesso riservato ai maggiorenni
         </h2>
         <p id="age-gate-text" className="mt-3 text-[15px] leading-relaxed text-foreground/70">
-          Il sito e i tornei di Nettuno Gold sono riservati a chi ha compiuto 18 anni. Entrando confermi di essere
+          Il sito di Nettuno Gold è riservato a chi ha compiuto 18 anni. Entrando confermi di essere
           maggiorenne.
         </p>
 
@@ -78,9 +78,7 @@ export function AgeGate() {
           </a>
         </div>
 
-        <p className="mt-5 border-t border-white/[0.06] pt-4 text-xs leading-relaxed text-muted">
-          Il gioco è vietato ai minori di 18 anni. Gioca responsabilmente.
-        </p>
+        
       </div>
     </div>
   );
