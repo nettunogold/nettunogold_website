@@ -7,8 +7,12 @@ export const SITE_URL =
 
 export const businessInfo = {
   name: "Nettuno Gold",
-  legalName: "Nettuno Gold S.r.l.", // PLACEHOLDER: ragione sociale da confermare
-  vatNumber: "IT00000000000", // PLACEHOLDER: P.IVA da confermare
+  // Dati societari: compaiono solo nella riga legale del footer e nella
+  // pagina Privacy. La sede coincide con l'indirizzo della sala.
+  legalName: "Società Sportiva Dilettantistica Nettuno Gold S.r.l.",
+  vatNumber: "04268691203",
+  // Contatto per le richieste sulla privacy (separato dalla posta dei clienti).
+  privacyEmail: "nettunogold.web@gmail.com",
   foundedYear: 2007,
   address: {
     street: "Via Toscanini 7/2",
