@@ -108,8 +108,13 @@ export function Footer() {
             </div>
           </div>
 
-          <p className="mt-8 border-t border-white/[0.06] pt-6 sm:mt-10 text-xs text-muted/70">
-            © {year} {businessInfo.name}
+          {/* Riga legale: P.IVA obbligatoria in home (art. 35 DPR 633/72); la
+              sede è l'indirizzo già mostrato nei contatti qui sopra. */}
+          <p className="mt-8 border-t border-white/[0.06] pt-6 text-[11px] leading-relaxed text-muted/60 sm:mt-10">
+            © {year} {businessInfo.legalName} · P.IVA {businessInfo.vatNumber} ·{" "}
+            <Link href="/privacy" className="underline-offset-2 transition-colors hover:text-gold-light hover:underline">
+              Privacy
+            </Link>
           </p>
         </Container>
       </div>

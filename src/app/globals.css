@@ -425,6 +425,31 @@ html:not([data-age-ok]) body {
   }
 }
 
+/* ===== Testi legali (Privacy) ===== */
+.legal-text p,
+.legal-text li {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.legal-text section > p + p {
+  margin-top: 0.25rem;
+}
+.legal-text ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+.legal-text li::marker {
+  color: var(--gold);
+}
+.legal-text strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
 /* ===== Official partner (home) ===== */
 /* Fascia sottile a tutta larghezza: filetti oro sopra e sotto, luce calda al
    centro, bordi laterali che sfumano nel fondo. */
